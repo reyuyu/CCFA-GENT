@@ -168,6 +168,15 @@ function dataUrlToBlob(dataUrl: string): Blob {
   return new Blob([bytes], { type: mimeMatch[1] });
 }
 
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
 export async function saveAssetsIntoWorkspace(
   rootHandle: FileSystemDirectoryHandle,
   folderType: FolderType,
@@ -195,6 +204,52 @@ export async function saveAssetsIntoWorkspace(
     const writable = await fileHandle.createWritable();
     await writable.write(dataUrlToBlob(asset.dataUrl));
     await writable.close();
+  }
+}
+
+async function readAssetsFromDirectory(
+  directoryHandle: FileSystemDirectoryHandle,
+  prefix = ""
+): Promise<ParsedImageAsset[]> {
+  if (!directoryHandle.entries) {
+    return [];
+  }
+
+  const assets: ParsedImageAsset[] = [];
+  for await (const [name, handle] of directoryHandle.entries()) {
+    const relativePath = prefix ? `${prefix}/${name}` : name;
+    if (handle.kind === "directory") {
+      assets.push(...(await readAssetsFromDirectory(handle as FileSystemDirectoryHandle, relativePath)));
+      continue;
+    }
+
+    const file = await (handle as FileSystemFileHandle).getFile();
+    if (!file.type.startsWith("image/")) {
+      continue;
+    }
+    assets.push({
+      path: relativePath,
+      mimeType: file.type,
+      dataUrl: await blobToDataUrl(file)
+    });
+  }
+  return assets;
+}
+
+export async function restoreParsedAssetsFromWorkspace(
+  rootHandle: FileSystemDirectoryHandle,
+  folderType: FolderType,
+  assetFolderName: string
+): Promise<ParsedImageAsset[]> {
+  const permitted = await ensureDirectoryWritePermission(rootHandle);
+  if (!permitted) return [];
+
+  try {
+    const folderHandle = await rootHandle.getDirectoryHandle(workspaceFolderNames[folderType]);
+    const assetRootHandle = await folderHandle.getDirectoryHandle(assetFolderName);
+    return readAssetsFromDirectory(assetRootHandle);
+  } catch {
+    return [];
   }
 }
 
@@ -347,7 +402,13 @@ export async function removeFileFromWorkspace(
   if (!permitted) return;
 
   const folderHandle = await rootHandle.getDirectoryHandle(folderName);
-  await folderHandle.removeEntry(fileName);
+  await folderHandle.removeEntry(fileName).catch(() => undefined);
+
+  if (file.parsedAssetFolder) {
+    await folderHandle
+      .removeEntry(file.parsedAssetFolder, { recursive: true })
+      .catch(() => undefined);
+  }
 }
 
 export function describeWorkspace(project: PaperProject): string {

@@ -30,6 +30,7 @@ declare global {
       options?: { create?: boolean }
     ): Promise<FileSystemDirectoryHandle>;
     removeEntry(name: string, options?: { recursive?: boolean }): Promise<void>;
+    entries?(): AsyncIterableIterator<[string, FileSystemHandle]>;
     queryPermission?(descriptor?: FileSystemHandlePermissionDescriptor): Promise<PermissionState>;
     requestPermission?(descriptor?: FileSystemHandlePermissionDescriptor): Promise<PermissionState>;
   }

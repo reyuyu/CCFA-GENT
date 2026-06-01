@@ -4,7 +4,8 @@ import { refreshProjectFileFromDisk } from "./fileReader";
 import {
   createWorkspaceFromExistingRoot,
   getWorkspaceFileHandle,
-  loadProjectStateFromWorkspace
+  loadProjectStateFromWorkspace,
+  restoreParsedAssetsFromWorkspace
 } from "./workspaceFs";
 
 const folderTypes: FolderType[] = [
@@ -24,11 +25,26 @@ async function restoreProjectFile(
 
   try {
     const localHandle = await getWorkspaceFileHandle(rootDirectoryHandle, file.localPath);
-    return refreshProjectFileFromDisk({
+    const refreshedFile = await refreshProjectFileFromDisk({
       ...file,
       sourceType: "localHandle",
       localHandle
     });
+    if (!refreshedFile.parsedAssetFolder) {
+      return refreshedFile;
+    }
+
+    const parsedImageAssets = await restoreParsedAssetsFromWorkspace(
+      rootDirectoryHandle,
+      refreshedFile.folderType,
+      refreshedFile.parsedAssetFolder
+    );
+    return parsedImageAssets.length > 0
+      ? {
+          ...refreshedFile,
+          parsedImageAssets
+        }
+      : refreshedFile;
   } catch {
     return {
       ...file,
