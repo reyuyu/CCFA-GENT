@@ -11,6 +11,20 @@ import { Button } from "../ui/Button";
 import { Modal } from "../ui/Modal";
 import { DraftParagraphManager } from "./DraftParagraphManager";
 
+const markdownImagePattern =
+  /!\[(?<alt>[^\]]*)\]\((?<target><[^>]+>|[^\n]*?\.(?:png|jpe?g|gif|webp|bmp|svg))(?:\s+(?<title>"[^"]*"|'[^']*'|\([^)]*\)))?\)/gi;
+
+const normalizeMarkdownImageTargets = (markdown: string) =>
+  markdown.replace(markdownImagePattern, (...args) => {
+    const groups = args[args.length - 1] as { alt: string; target: string; title?: string };
+    const target = groups.target.trim();
+    if (target.startsWith("<") && target.endsWith(">")) {
+      return `![${groups.alt}](${target}${groups.title ? ` ${groups.title}` : ""})`;
+    }
+    const safeTarget = /[\s()]/.test(target) ? `<${target.replace(/[<>]/g, "-")}>` : target;
+    return `![${groups.alt}](${safeTarget}${groups.title ? ` ${groups.title}` : ""})`;
+  });
+
 export function MarkdownPreviewModal({
   open,
   file,
@@ -27,6 +41,9 @@ export function MarkdownPreviewModal({
   const [mode, setMode] = useState<"preview" | "paragraphs">("preview");
   const pendingChange = file?.pendingChange?.status === "pending" ? file.pendingChange : undefined;
   const previewContent = pendingChange?.newContent ?? file?.contentText;
+  const normalizedPreviewContent = normalizeMarkdownImageTargets(
+    previewContent || "No Markdown content yet."
+  );
   const resolveImageSrc = (src: string | undefined) => {
     if (!src || !file?.parsedImageAssets?.length || !file.parsedAssetFolder) {
       return src;
@@ -174,7 +191,7 @@ export function MarkdownPreviewModal({
                       )
                     }}
                   >
-                    {previewContent || "No Markdown content yet."}
+                    {normalizedPreviewContent}
                   </ReactMarkdown>
                 </article>
               </>

@@ -15,6 +15,12 @@ import {
   saveAssetsIntoWorkspace
 } from "../../utils/workspaceFs";
 
+const escapeMarkdownLinkTarget = (target: string) =>
+  /[\s()]/.test(target) ? `<${target.replace(/[<>]/g, "-")}>` : target;
+
+const markdownImagePattern =
+  /!\[(?<alt>[^\]]*)\]\((?<target><[^>]+>|[^\n]*?\.(?:png|jpe?g|gif|webp|bmp|svg))(?:\s+(?<title>"[^"]*"|'[^']*'|\([^)]*\)))?\)/gi;
+
 export function FileUploadBox({
   projectId,
   folderType
@@ -38,8 +44,14 @@ export function FileUploadBox({
     return new File([markdown], markdownName, { type: "text/markdown" });
   };
 
-  const createAssetFolderName = (sourceName: string) =>
-    `${sanitizeFolderName(sourceName.replace(/\.pdf$/i, ""))}.mineru.assets`;
+  const createAssetFolderName = (sourceName: string) => {
+    const safeBaseName = sanitizeFolderName(sourceName.replace(/\.pdf$/i, ""))
+      .replace(/[()（）]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 72);
+    return `${safeBaseName || "paper"}.mineru.assets`;
+  };
 
   const rewriteAssetLinks = (markdown: string, assetFolderName: string) => {
     const normalizeTarget = (target: string) => {
@@ -57,14 +69,14 @@ export function FileUploadBox({
       const path = queryIndex >= 0 ? beforeHash.slice(0, queryIndex) : beforeHash;
       const querySuffix = queryIndex >= 0 ? beforeHash.slice(queryIndex) : "";
       const safePath = sanitizeRelativeAssetPath(path);
-      return `${assetFolderName}/${safePath}${querySuffix}${hashSuffix}`;
+      return escapeMarkdownLinkTarget(`${assetFolderName}/${safePath}${querySuffix}${hashSuffix}`);
     };
 
     const withMarkdownImages = markdown.replace(
-      /!\[(?<alt>[^\]]*)\]\((?<target><[^>]+>|[^\s)]+)(?<title>\s+[^)]*)?\)/g,
+      markdownImagePattern,
       (...args) => {
         const groups = args[args.length - 1] as { alt: string; target: string; title?: string };
-        return `![${groups.alt}](${normalizeTarget(groups.target)}${groups.title ?? ""})`;
+        return `![${groups.alt}](${normalizeTarget(groups.target)}${groups.title ? ` ${groups.title}` : ""})`;
       }
     );
 

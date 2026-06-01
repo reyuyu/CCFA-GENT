@@ -69,6 +69,19 @@ def _is_relative_asset_url(url: str) -> bool:
     return True
 
 
+MARKDOWN_IMAGE_PATTERN = re.compile(
+    r"!\[(?P<alt>[^\]]*)\]\((?P<target><[^>]+>|[^\n]*?\.(?:png|jpe?g|gif|webp|bmp|svg))"
+    r"(?:\s+(?P<title>\"[^\"]*\"|'[^']*'|\([^)]*\)))?\)",
+    flags=re.IGNORECASE,
+)
+
+
+def _escape_markdown_link_target(target: str) -> str:
+    if re.search(r"[\s()]", target):
+        return f"<{target.replace('<', '-').replace('>', '-')}>"
+    return target
+
+
 def resolve_markdown_asset_urls(markdown: str, markdown_url: str) -> str:
     """Make lightweight MinerU relative image URLs usable after the Markdown is saved alone."""
 
@@ -79,13 +92,10 @@ def resolve_markdown_asset_urls(markdown: str, markdown_url: str) -> str:
         title = match.group("title") or ""
         if not _is_relative_asset_url(target):
             return match.group(0)
-        return f"![{alt_text}]({urljoin(markdown_url, target)}{title})"
+        resolved_target = _escape_markdown_link_target(urljoin(markdown_url, target))
+        return f"![{alt_text}]({resolved_target}{f' {title}' if title else ''})"
 
-    markdown = re.sub(
-        r"!\[(?P<alt>[^\]]*)\]\((?P<target><[^>]+>|[^\s)]+)(?P<title>\s+[^)]*)?\)",
-        replace_markdown_image,
-        markdown,
-    )
+    markdown = MARKDOWN_IMAGE_PATTERN.sub(replace_markdown_image, markdown)
 
     def replace_html_image(match: re.Match[str]) -> str:
         before = match.group("before")
