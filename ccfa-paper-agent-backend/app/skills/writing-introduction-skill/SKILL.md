@@ -1,0 +1,158 @@
+# Writing Introduction Skill
+
+Skill ID: `writing-introduction-skill`
+
+This skill guides WritingAgent when writing, revising, polishing, or restructuring the Introduction section of an English CCF-A / SCI paper.
+
+## 1. Writing Principles
+
+### 1.1 User-first principle
+
+The user's requirements always have the highest priority as writing direction, task constraints, and scientific intent. However, manuscript prose should not be produced by simply translating the user's Chinese explanation into English.
+
+
+### 1.2 Reference-imitation principle
+
+For every sentence, the agent should consider whether useful writing material can be found from local reference papers. The goal is to minimize self-generated writing whenever reliable reference material is available.
+
+Use reference papers to imitate academic writing logic, paragraph organization, motivation construction, and scientific framing. Do not copy exact wording or distinctive expressions.
+
+### 1.3 Minimal-change principle
+
+When source material is available, the agent should reuse what can be reused and make only necessary modifications. Do not freely invent, over-expand, or substantially rewrite beyond the available material.
+
+When revising existing draft content, preserve the user's original scientific intent, paragraph role, terminology, and useful wording whenever possible.
+
+### 1.3.1 Source-material usage principle
+
+When reliable reference-paper material is available, prioritize directly reusing sentence groups that can be used with minimal adaptation. Modify only the necessary parts, such as task-specific terms, method names, domain objects, logical dependencies, or concepts that do not fit the current manuscript.
+
+Avoid constructing one paragraph by interleaving many disconnected fragments from multiple non-continuous source passages. If multiple source passages must be integrated, first study the original logical transitions carefully, then refine the draft's own logical transitions with equal care so that the resulting paragraph is coherent rather than stitched together.
+
+### 1.3.2 Sufficient-source principle
+
+Do not write Introduction content when there is insufficient source material. If the draft, local references, and user-provided project context do not provide enough support for the requested paragraph or claim, the agent must not fabricate or freely generate manuscript prose.
+
+When source material is insufficient, the agent may call `retrieve_academic_papers` to search for potentially useful papers and candidate source material. Retrieval results are only recommendations and must be returned to the user for confirmation before being treated as writing material.
+
+In this situation, clearly tell the user which specific material is insufficient, such as missing background support, missing evidence for a gap, missing concept-based method references, missing clinical task references, missing experiment evidence, or missing terminology grounding. Explain that writing cannot proceed reliably until the user confirms additional references or provides more source material.
+
+### 1.4 Sentence-by-sentence writing principle
+
+All Introduction writing must follow a sentence-by-sentence process. Each sentence should be carefully written, checked, and connected to the surrounding context.
+
+### 1.5 Self-check principle
+
+After completing the current writing task, the agent must perform a strict writing self-check.
+
+### 1.6 Outline-first principle
+
+Before writing, the agent must first clarify the paragraph-level outline of the Introduction. Each paragraph in the outline should be represented by one sentence describing what that paragraph should write.
+
+Use `get_introduction_outline` to inspect the current Introduction outline. If no outline exists, or if the outline is inconsistent with the current task, use `edit_introduction_outline` to generate or update the structured paragraph-level outline so that it is visible to the frontend.
+
+## 2. Workflow
+
+For every Introduction writing or revision task, follow this workflow:
+
+1. Determine the target writing unit.
+
+   Identify whether the user is asking for the whole Introduction, a specific paragraph, a new paragraph, motivation, gap, related work, problem formulation, contribution framing, or polishing.
+
+   Use `list_draft_sections`, `get_draft_section_content`, `list_draft_paragraphs`, `get_draft_paragraph_content`, and `get_draft_paragraph_status` as needed.
+
+2. Determine the paragraph-level outline of the Introduction.
+
+   Use `get_introduction_outline` to check whether an Introduction outline already exists.
+
+   If no outline exists, first build a logical outline based on the current paper context, the current draft, and core reference papers. Then call `edit_introduction_outline` to save the outline.
+
+   If an outline exists, follow it unless the user explicitly asks to adjust it or it clearly conflicts with the draft/project context. When updating it, call `edit_introduction_outline`.
+
+3. Prioritize local reference papers.
+
+   Use `list_reference_papers` to inspect reference metadata, prioritizing core references. Compare the reference papers with the outline requirements and determine whether the current writing content has reusable or adaptable material.
+
+   When useful references exist, use `list_reference_sections` and `get_reference_section_content` to inspect relevant Introduction, Related Work, Method, or Experiment sections.
+
+4. Prepare the writing context.
+
+   Collect the source material, current draft content, paragraph status, preceding writing context, established terminology, and user-provided information.
+
+   Treat user-provided Chinese notes as directional guidance rather than direct manuscript material. Do not simply translate them into English. Use reference papers and existing draft context to formulate academic prose.
+
+   Do not modify finalized or locked paragraphs unless the user explicitly allows it.
+
+5. Start sentence-by-sentence writing.
+
+   Follow the requirements in Section 3. Each sentence should be grounded in user information, draft context, references, or clearly marked cautious reasoning.
+
+6. Perform a self-check.
+
+   After completing a paragraph or writing unit, perform the checks in Section 4.
+
+7. Write the result into the manuscript when editing is requested.
+
+   Use `edit_draft_section` for the whole Introduction, `edit_draft_paragraph_content` for one paragraph, and `edit_draft` only when full-draft replacement is truly necessary.
+
+   Never claim the manuscript has been changed unless an edit tool has produced a valid patch.
+
+8. Ask for clarification when necessary.
+
+   If key information is uncertain, missing, or unsupported by the draft/references/project context, ask the user for clarification instead of inventing content.
+
+## 3. Sentence-by-Sentence Writing Requirements
+
+All Introduction writing must be performed sentence by sentence.
+
+For each sentence, follow this process:
+
+0. Judge whether there is source material that can be directly filled in, reused, or minimally adapted.
+
+1. If source material exists, determine which parts need minor adjustment.
+
+   The parts that need adjustment are usually words, terms, concepts, or logical dependencies that do not match the current paper, or concepts that have not been introduced in the current manuscript.
+
+2. If no reference-paper or draft source material exists, write cautiously from the current project context and user-provided information, but do not simply translate user Chinese notes. Ask for more reference material or clarification when academic formulation would otherwise be unsupported.
+
+3. Ensure the sentence has a clear logical relationship with the previous sentence and prepares a logical connection to the next sentence.
+
+4. Keep terminology consistent with the title, draft, method names, problem names, datasets, metrics, and contribution keywords.
+
+## 4. Self-Check Requirements
+
+After completing a paragraph or a writing unit, perform the following checks:
+
+### 4.1 Topic check
+
+Check whether the paragraph matches the outline requirement and ensure that it does not deviate from the topic.
+
+### 4.2 Logic check
+
+Check whether the paragraph has strict logical coherence and whether there is a reasonable transition between sentences and between paragraphs.
+
+### 4.3 Concept check
+
+Check whether any concept appears without sufficient prior preparation, or whether any concept is abrupt, irrelevant, or disconnected from the writing flow.
+
+### 4.4 Length check
+
+Based on the reference papers, target venue/journal, current draft style, and the outline, check whether the length of the content is appropriate.
+
+### 4.5 Reference-grounding check
+
+Check whether too much of the writing lacks reference support. If a large amount of content is written without reference material, revise it to be more reference-grounded or ask the user for additional information.
+
+### 4.6 Finalized-paragraph check
+
+Check whether any finalized, final, or locked paragraph would be modified. If so, do not modify it unless the user explicitly authorizes the change.
+
+## 5. Output Behavior
+
+For manuscript prose, write in polished academic English.
+
+For explanations to the user, reply in the user's language unless otherwise requested.
+
+When multiple polishing options are useful, include the options in the user-facing response and clearly explain the difference between them.
+
+Briefly explain what was revised or generated, which references or source materials were considered, whether the Introduction outline was used or updated, and whether finalized paragraphs were preserved.

@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #2f2d2a;
+  background: #f7f3ee;
+  font-family: Inter, "Noto Sans SC", "Microsoft YaHei", "PingFang SC", ui-sans-serif,
+    system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(216, 224, 227, 0.48), transparent 34%),
+    linear-gradient(180deg, rgba(250, 248, 244, 0.92) 0%, rgba(238, 232, 223, 0.72) 100%),
+    #f7f3ee;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+::selection {
+  background: rgba(110, 131, 115, 0.24);
+  color: #2f2d2a;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d8cfc4 transparent;
+}
+
+::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: #d8cfc4;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.prose-paper {
+  color: #3d3a36;
+  letter-spacing: 0;
+}
+
+.prose-paper h1,
+.prose-paper h2,
+.prose-paper h3 {
+  color: #1c1917;
+  font-weight: 720;
+  letter-spacing: 0;
+}
+
+.prose-paper p {
+  line-height: 1.82;
+}
+
+.prose-paper code {
+  border-radius: 4px;
+  background: rgba(216, 207, 196, 0.38);
+  padding: 0.1rem 0.25rem;
+}
+
+.prose-paper pre {
+  overflow-x: auto;
+  border-radius: 8px;
+  background: #1c1917;
+  color: #fafaf9;
+  padding: 1rem;
+}
+
+.prose-paper pre code {
+  background: transparent;
+  color: #fafaf9;
+  padding: 0;
+}
+
+.markdown-reader {
+  margin-inline: auto;
+  max-width: 900px;
+  min-height: 100%;
+  font-family: "Source Serif 4", "Noto Serif SC", Georgia, serif;
+  font-size: 17px;
+}
+
+.markdown-reader h1 {
+  border-bottom: 1px solid #e7e5e4;
+  padding-bottom: 0.55rem;
+}
+
+.markdown-reader h2 {
+  margin-top: 2.2rem;
+}
+
+.markdown-reader table {
+  font-family: Inter, "Noto Sans SC", "Microsoft YaHei", "PingFang SC", ui-sans-serif,
+    system-ui, sans-serif;
+  font-size: 0.9rem;
+}

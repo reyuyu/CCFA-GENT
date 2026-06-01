@@ -1,0 +1,280 @@
+import { Files, MessagesSquare } from "lucide-react";
+import { useState } from "react";
+import { organizeMarkdownSections } from "../../agent/markdownOrganizerApi";
+import { useProjectStore } from "../../store/projectStore";
+import type { FolderType, ProjectFile } from "../../types/file";
+import type { PaperProject } from "../../types/project";
+import { ChatPanel } from "../chat/ChatPanel";
+import { ThreadList } from "../chat/ThreadList";
+import { FileChangeReviewModal } from "../files/FileChangeReviewModal";
+import { FileEditModal } from "../files/FileEditModal";
+import { FileFolderPanel } from "../files/FileFolderPanel";
+import { MarkdownPreviewModal } from "../files/MarkdownPreviewModal";
+import { ReferencePaperMetaForm } from "../files/ReferencePaperMetaForm";
+import { WritingMapPanel } from "../project/WritingMapPanel";
+import { Modal } from "../ui/Modal";
+
+const folderOrder: FolderType[] = [
+  "draftManuscripts",
+  "coreReferences",
+  "optionalReferences",
+  "draftImages"
+];
+
+const defaultExpandedFolders: Record<FolderType, boolean> = {
+  draftManuscripts: true,
+  coreReferences: true,
+  optionalReferences: false,
+  draftImages: false
+};
+
+export function ProjectSidebar({ project }: { project: PaperProject }) {
+  const updateReferenceMeta = useProjectStore((state) => state.updateReferenceMeta);
+  const updateImageCaption = useProjectStore((state) => state.updateImageCaption);
+  const updateDraftParagraphStatus = useProjectStore((state) => state.updateDraftParagraphStatus);
+  const deleteFile = useProjectStore((state) => state.deleteFile);
+  const refreshFileFromDisk = useProjectStore((state) => state.refreshFileFromDisk);
+  const proposeFileChange = useProjectStore((state) => state.proposeFileChange);
+  const applyPendingFileChange = useProjectStore((state) => state.applyPendingFileChange);
+  const rejectPendingFileChange = useProjectStore((state) => state.rejectPendingFileChange);
+  const [markdownFile, setMarkdownFile] = useState<ProjectFile | undefined>();
+  const [markdownFolder, setMarkdownFolder] = useState<FolderType | undefined>();
+  const [editingTarget, setEditingTarget] = useState<{
+    folderType: FolderType;
+    file: ProjectFile;
+  }>();
+  const [reviewTarget, setReviewTarget] = useState<{
+    folderType: FolderType;
+    file: ProjectFile;
+  }>();
+  const [referenceTarget, setReferenceTarget] = useState<{
+    folderType: FolderType;
+    file: ProjectFile;
+  }>();
+  const [imagePreview, setImagePreview] = useState<ProjectFile | undefined>();
+  const [applyingChange, setApplyingChange] = useState(false);
+  const [organizingFileId, setOrganizingFileId] = useState<string | undefined>();
+  const [sidebarView, setSidebarView] = useState<"files" | "threads">("files");
+
+  const currentMarkdownFile = markdownFile
+    ? project.folders[markdownFolder!].find((file) => file.id === markdownFile.id) ?? markdownFile
+    : undefined;
+  const currentEditingFile = editingTarget
+    ? project.folders[editingTarget.folderType].find((file) => file.id === editingTarget.file.id) ??
+      editingTarget.file
+    : undefined;
+  const currentReviewFile = reviewTarget
+    ? project.folders[reviewTarget.folderType].find((file) => file.id === reviewTarget.file.id) ??
+      reviewTarget.file
+    : undefined;
+
+  const removeFile = (targetFolder: FolderType, file: ProjectFile) => {
+    if (!window.confirm(`确定删除文件“${file.name}”吗？`)) return;
+    deleteFile(project.id, targetFolder, file.id);
+    if (markdownFile?.id === file.id) {
+      setMarkdownFile(undefined);
+      setMarkdownFolder(undefined);
+    }
+    if (editingTarget?.file.id === file.id) {
+      setEditingTarget(undefined);
+    }
+    if (reviewTarget?.file.id === file.id) {
+      setReviewTarget(undefined);
+    }
+    if (referenceTarget?.file.id === file.id) {
+      setReferenceTarget(undefined);
+    }
+    if (imagePreview?.id === file.id) {
+      setImagePreview(undefined);
+    }
+  };
+
+  return (
+    <>
+      <aside className="flex h-full w-[376px] shrink-0 flex-col overflow-hidden border-r border-morandi-clay/70 bg-[#eee8df]/70">
+        <div className="border-b border-morandi-clay/70 bg-[#f7f3ee]/90 px-4 py-3">
+          <div className="grid grid-cols-2 gap-1 rounded-lg bg-morandi-clay/35 p-1">
+            <button
+              type="button"
+              className={`flex h-9 items-center justify-center gap-2 rounded-md text-sm font-medium transition ${
+                sidebarView === "files"
+                  ? "bg-[#fbfaf7] text-morandi-ink shadow-sm"
+                  : "text-morandi-muted hover:text-morandi-ink"
+              }`}
+              onClick={() => setSidebarView("files")}
+            >
+              <Files className="h-4 w-4" />
+              资料
+            </button>
+            <button
+              type="button"
+              className={`flex h-9 items-center justify-center gap-2 rounded-md text-sm font-medium transition ${
+                sidebarView === "threads"
+                  ? "bg-[#fbfaf7] text-morandi-ink shadow-sm"
+                  : "text-morandi-muted hover:text-morandi-ink"
+              }`}
+              onClick={() => setSidebarView("threads")}
+            >
+              <MessagesSquare className="h-4 w-4" />
+              线程
+            </button>
+          </div>
+        </div>
+
+        {sidebarView === "files" ? (
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4 pr-3">
+            <WritingMapPanel
+              memory={project.scientificProblemMemory}
+              outline={project.introductionOutline}
+            />
+            {folderOrder.map((folderType) => (
+              <FileFolderPanel
+                key={folderType}
+                projectId={project.id}
+                folderType={folderType}
+                files={project.folders[folderType]}
+                defaultExpanded={defaultExpandedFolders[folderType]}
+                onOpenMarkdown={(file) => {
+                  setMarkdownFile(file);
+                  setMarkdownFolder(folderType);
+                }}
+                onEditFile={(targetFolder, file) =>
+                  setEditingTarget({ folderType: targetFolder, file })
+                }
+                onReviewChange={(targetFolder, file) =>
+                  setReviewTarget({ folderType: targetFolder, file })
+                }
+                onRefreshFile={(targetFolder, file) => {
+                  void refreshFileFromDisk(project.id, targetFolder, file.id);
+                }}
+                onOrganizeSections={(targetFolder, file) => {
+                  if (!file.contentText || organizingFileId) return;
+                  setOrganizingFileId(file.id);
+                  void organizeMarkdownSections(file.name, file.contentText)
+                    .then((result) => {
+                      proposeFileChange(
+                        project.id,
+                        targetFolder,
+                        file.id,
+                        result.organizedMarkdown,
+                        result.summary || "Agent 仅整理 Markdown 标题结构，正文保持不变。",
+                        "agent"
+                      );
+                      setReviewTarget({ folderType: targetFolder, file });
+                    })
+                    .catch((error) => {
+                      window.alert(error instanceof Error ? error.message : "章节整理失败。");
+                    })
+                    .finally(() => setOrganizingFileId(undefined));
+                }}
+                organizingFileId={organizingFileId}
+                onEditReference={(targetFolder, file) =>
+                  setReferenceTarget({ folderType: targetFolder, file })
+                }
+                onImageCaption={(fileId, caption) => updateImageCaption(project.id, fileId, caption)}
+                onPreviewImage={(file) => setImagePreview(file)}
+                onDeleteFile={removeFile}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="min-h-0 flex-1 overflow-y-auto p-4">
+            <ThreadList
+              projectId={project.id}
+              activeThreadId={project.activeThreadId}
+              threads={project.threads}
+            />
+          </div>
+        )}
+      </aside>
+
+      <MarkdownPreviewModal
+        open={Boolean(markdownFile)}
+        file={currentMarkdownFile}
+        isDraft={markdownFolder === "draftManuscripts"}
+        onClose={() => {
+          setMarkdownFile(undefined);
+          setMarkdownFolder(undefined);
+        }}
+        onParagraphChange={(paragraphId, patch) => {
+          if (currentMarkdownFile) {
+            updateDraftParagraphStatus(project.id, currentMarkdownFile.id, paragraphId, patch);
+          }
+        }}
+      />
+
+      <ReferencePaperMetaForm
+        open={Boolean(referenceTarget)}
+        file={referenceTarget?.file}
+        folderType={referenceTarget?.folderType}
+        onClose={() => setReferenceTarget(undefined)}
+        onSave={(folderType, fileId, meta) => {
+          updateReferenceMeta(project.id, folderType, fileId, meta);
+          setReferenceTarget(undefined);
+        }}
+      />
+
+      <FileEditModal
+        open={Boolean(editingTarget)}
+        file={currentEditingFile}
+        onClose={() => setEditingTarget(undefined)}
+        onCreateProposal={(newContent, summary) => {
+          if (!editingTarget) return;
+          proposeFileChange(
+            project.id,
+            editingTarget.folderType,
+            editingTarget.file.id,
+            newContent,
+            summary,
+            "manual"
+          );
+          setReviewTarget(editingTarget);
+          setEditingTarget(undefined);
+        }}
+      />
+
+      <FileChangeReviewModal
+        open={Boolean(reviewTarget)}
+        file={currentReviewFile}
+        applying={applyingChange}
+        onClose={() => setReviewTarget(undefined)}
+        onReject={() => {
+          if (!reviewTarget) return;
+          rejectPendingFileChange(project.id, reviewTarget.folderType, reviewTarget.file.id);
+          setReviewTarget(undefined);
+        }}
+        onApply={async () => {
+          if (!reviewTarget) return;
+          setApplyingChange(true);
+          try {
+            await applyPendingFileChange(project.id, reviewTarget.folderType, reviewTarget.file.id);
+            setReviewTarget(undefined);
+          } catch (error) {
+            window.alert(error instanceof Error ? error.message : "应用修改失败。");
+          } finally {
+            setApplyingChange(false);
+          }
+        }}
+      />
+
+      <Modal
+        open={Boolean(imagePreview)}
+        title={imagePreview?.name ?? "图片预览"}
+        onClose={() => setImagePreview(undefined)}
+        widthClass="max-w-4xl"
+      >
+        {imagePreview?.dataUrl ? (
+          <img
+            src={imagePreview.dataUrl}
+            alt={imagePreview.name}
+            className="max-h-[70vh] w-full rounded-md object-contain"
+          />
+        ) : null}
+      </Modal>
+    </>
+  );
+}
+
+export function WorkspaceMain({ project }: { project: PaperProject }) {
+  return <ChatPanel project={project} />;
+}
