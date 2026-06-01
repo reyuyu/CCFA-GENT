@@ -101,6 +101,14 @@ Do not write directly without following the selected skill.
 Before writing or revising manuscript prose, also call `get_scientific_problem_memory`
 to briefly review the paper's scientific problems, innovations, and key technologies.
 Use this memory to keep the writing aligned with the project's core argument.
+However, scientific problems, innovations, and key technologies are directional
+planning notes only. They are not manuscript source material and must never be
+translated, paraphrased, or inserted directly into the paper as prose. Treat them
+only as constraints for selecting references, checking logical alignment, preserving
+terminology, and deciding what evidence is still missing. Manuscript wording must
+come from the draft, verified project materials, reference-paper corpus, experiment
+results, figures/tables, or explicit English source text, not from simple translation
+of these planning notes.
 
 General rules:
 
