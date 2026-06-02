@@ -13,6 +13,7 @@ from app.context import build_agent_input
 from app.context.runtime import PaperAgentRunContext
 from app.core.config import Settings
 from app.memory import get_thread_session
+from app.memory.session_store import clear_thread_session
 from app.observability import PaperAgentHooks
 from app.schemas.agent import AgentRequest, AgentResponse
 
@@ -331,6 +332,15 @@ def _error_response(error: Exception) -> AgentResponse:
     return AgentResponse(content=f"Agent run failed: {error}")
 
 
+def _is_broken_tool_history_error(error: Exception) -> bool:
+    message = str(getattr(error, "message", error)).lower()
+    return (
+        "tool_calls" in message
+        and "tool_call_id" in message
+        and "insufficient tool messages" in message
+    )
+
+
 async def run_paper_agent(request: AgentRequest, settings: Settings) -> AgentResponse:
     if not settings.deepseek_api_key:
         return AgentResponse(
@@ -355,8 +365,27 @@ async def run_paper_agent(request: AgentRequest, settings: Settings) -> AgentRes
             hooks=PaperAgentHooks(),
             max_turns=40,
         )
-    except (AuthenticationError, RateLimitError, APIConnectionError, APIError) as error:
+    except (AuthenticationError, RateLimitError, APIConnectionError) as error:
         return _error_response(error)
+    except APIError as error:
+        if not _is_broken_tool_history_error(error):
+            return _error_response(error)
+
+        await clear_thread_session(settings, request.projectId, request.threadId)
+        retry_session = get_thread_session(settings, request.projectId, request.threadId)
+        retry_context = PaperAgentRunContext(project_context=request.context)
+        try:
+            result = await Runner.run(
+                agent,
+                input=build_agent_input(request),
+                context=retry_context,
+                session=retry_session,
+                hooks=PaperAgentHooks(),
+                max_turns=40,
+            )
+        except (AuthenticationError, RateLimitError, APIConnectionError, APIError) as retry_error:
+            return _error_response(retry_error)
+        return _response_from_final_output(result.final_output, retry_context, is_edit_command)
 
     return _response_from_final_output(result.final_output, run_context, is_edit_command)
 
@@ -416,10 +445,57 @@ async def run_paper_agent_stream(
             "event": _progress_event("done", "回答已生成。"),
         }
         yield {"type": "final", "response": response.model_dump(mode="json", exclude_none=True)}
-    except (AuthenticationError, RateLimitError, APIConnectionError, APIError) as error:
+    except (AuthenticationError, RateLimitError, APIConnectionError) as error:
         response = _error_response(error)
         yield {"type": "progress", "event": _progress_event("error", response.content)}
         yield {"type": "final", "response": response.model_dump(mode="json", exclude_none=True)}
+    except APIError as error:
+        if not _is_broken_tool_history_error(error):
+            response = _error_response(error)
+            yield {"type": "progress", "event": _progress_event("error", response.content)}
+            yield {"type": "final", "response": response.model_dump(mode="json", exclude_none=True)}
+            return
+
+        yield {
+            "type": "progress",
+            "event": _progress_event(
+                "thinking",
+                "检测到本线程 Agent 会话历史不完整，正在清理记忆并重试...",
+            ),
+        }
+        await clear_thread_session(settings, request.projectId, request.threadId)
+        retry_session = get_thread_session(settings, request.projectId, request.threadId)
+        retry_context = PaperAgentRunContext(project_context=request.context)
+
+        try:
+            retry_result = Runner.run_streamed(
+                agent,
+                input=build_agent_input(request),
+                context=retry_context,
+                session=retry_session,
+                hooks=PaperAgentHooks(),
+                max_turns=40,
+            )
+
+            async for stream_event in retry_result.stream_events():
+                progress = _progress_from_stream_event(stream_event)
+                if progress:
+                    yield {"type": "progress", "event": progress}
+
+            response = _response_from_final_output(
+                retry_result.final_output,
+                retry_context,
+                is_edit_command,
+            )
+            yield {
+                "type": "progress",
+                "event": _progress_event("done", "回答已生成。"),
+            }
+            yield {"type": "final", "response": response.model_dump(mode="json", exclude_none=True)}
+        except (AuthenticationError, RateLimitError, APIConnectionError, APIError) as retry_error:
+            response = _error_response(retry_error)
+            yield {"type": "progress", "event": _progress_event("error", response.content)}
+            yield {"type": "final", "response": response.model_dump(mode="json", exclude_none=True)}
     except Exception as error:
         response = _error_response(error)
         yield {"type": "progress", "event": _progress_event("error", response.content)}
