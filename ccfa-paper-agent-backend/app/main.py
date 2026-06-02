@@ -1,7 +1,7 @@
 
 import json
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
@@ -12,12 +12,14 @@ from app.schemas.agent import (
     HealthResponse,
     LocalConfigRequest,
     LocalConfigResponse,
+    LocalShutdownResponse,
     SessionClearResponse,
 )
 from app.schemas.markdown import OrganizeMarkdownRequest, OrganizeMarkdownResponse
 from app.schemas.mineru import MinerUParseResponse
 from app.services.agent_runner import run_paper_agent, run_paper_agent_stream
 from app.services.local_config import read_local_config, update_local_config
+from app.services.local_shutdown import collect_local_service_pids, shutdown_local_services_after_response
 from app.services.markdown_organizer import MarkdownOrganizeError, organize_markdown_sections
 from app.services.mineru_parser import MinerUOptions, MinerUParseError, parse_pdf_with_mineru
 from app.services.session_service import clear_agent_project_sessions, clear_agent_thread_session
@@ -58,6 +60,21 @@ async def save_local_config(request: LocalConfigRequest) -> LocalConfigResponse:
     response = update_local_config(request)
     reload_settings()
     return response
+
+
+@app.post("/api/local-shutdown", response_model=LocalShutdownResponse)
+async def shutdown_local_services(background_tasks: BackgroundTasks) -> LocalShutdownResponse:
+    backend_pids, frontend_pids = collect_local_service_pids()
+    background_tasks.add_task(
+        shutdown_local_services_after_response,
+        backend_pids,
+        frontend_pids,
+    )
+    return LocalShutdownResponse(
+        message="本地前后端服务正在关闭。",
+        backendPids=backend_pids,
+        frontendPids=frontend_pids,
+    )
 
 
 @app.post("/api/agent/chat", response_model=AgentResponse)

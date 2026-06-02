@@ -22,6 +22,12 @@ export type LocalConfigInput = {
   mineruParseMode?: string;
 };
 
+export type LocalShutdownResult = {
+  message: string;
+  backendPids: number[];
+  frontendPids: number[];
+};
+
 async function parseConfigResponse(response: Response): Promise<LocalConfig> {
   if (!response.ok) {
     const message = await response.text().catch(() => "");
@@ -44,4 +50,15 @@ export async function saveLocalConfig(input: LocalConfigInput): Promise<LocalCon
     body: JSON.stringify(input)
   });
   return parseConfigResponse(response);
+}
+
+export async function shutdownLocalServices(): Promise<LocalShutdownResult> {
+  const response = await fetch(`${getAgentApiUrl()}/api/local-shutdown`, {
+    method: "POST"
+  });
+  if (!response.ok) {
+    const message = await response.text().catch(() => "");
+    throw new Error(message || `Local shutdown request failed with ${response.status}`);
+  }
+  return (await response.json()) as LocalShutdownResult;
 }

@@ -80,6 +80,8 @@ chmod +x ./start-local.sh
 - 启动前端 `http://127.0.0.1:5173`
 - 打开前端主页
 
+关闭服务：在主页“本地 API 配置”卡片中点击“关闭本地服务”，即可结束本地前端和后端后台进程。
+
 ## API Key Configuration
 
 首次进入主页后，在“本地 API 配置”中填写自己的 Key：
@@ -234,6 +236,10 @@ Then confirm the DeepSeek API Key has been filled in the homepage configuration 
 ### Port 8000 or 5173 is already occupied
 
 Close the existing process or edit the startup script port.
+
+### How do I stop the local services?
+
+Open the homepage and click `关闭本地服务` in the local API configuration panel. This calls the backend shutdown endpoint and stops the local frontend and backend development servers.
 
 ### macOS cannot save or restore project folders
 

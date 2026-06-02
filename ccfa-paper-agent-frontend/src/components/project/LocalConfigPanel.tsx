@@ -1,6 +1,11 @@
-import { KeyRound, RefreshCw, Save } from "lucide-react";
+import { KeyRound, Power, RefreshCw, Save } from "lucide-react";
 import { useEffect, useState } from "react";
-import { fetchLocalConfig, saveLocalConfig, type LocalConfig } from "../../agent/localConfigApi";
+import {
+  fetchLocalConfig,
+  saveLocalConfig,
+  shutdownLocalServices,
+  type LocalConfig
+} from "../../agent/localConfigApi";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
@@ -88,6 +93,28 @@ export function LocalConfigPanel() {
     }
   };
 
+  const shutdown = async () => {
+    const confirmed = window.confirm(
+      "确定要关闭本地前后端服务吗？关闭后当前页面将无法继续连接，重新使用需要再次运行启动脚本。"
+    );
+    if (!confirmed) return;
+
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const result = await shutdownLocalServices();
+      setMessage(
+        `${result.message} 后端进程：${result.backendPids.join(", ") || "未检测到"}；前端进程：${
+          result.frontendPids.join(", ") || "未检测到"
+        }。`
+      );
+    } catch (errorValue) {
+      setError(errorValue instanceof Error ? errorValue.message : "关闭本地服务失败。");
+      setBusy(false);
+    }
+  };
+
   return (
     <section className="mt-5 rounded-xl border border-[#b8afa4]/70 bg-[#f7f3ee]/82 p-5 shadow-soft">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -102,14 +129,24 @@ export function LocalConfigPanel() {
             Key 只会写入本机后端的 <code>.env</code>，不会保存到浏览器工程，也不会提交到 Git。
           </p>
         </div>
-        <Button
-          variant="ghost"
-          icon={<RefreshCw className="h-4 w-4" />}
-          disabled={busy}
-          onClick={() => void loadConfig()}
-        >
-          刷新状态
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="ghost"
+            icon={<RefreshCw className="h-4 w-4" />}
+            disabled={busy}
+            onClick={() => void loadConfig()}
+          >
+            刷新状态
+          </Button>
+          <Button
+            variant="danger"
+            icon={<Power className="h-4 w-4" />}
+            disabled={busy}
+            onClick={() => void shutdown()}
+          >
+            关闭本地服务
+          </Button>
+        </div>
       </div>
 
       <div className="mt-4 grid gap-3 lg:grid-cols-3">

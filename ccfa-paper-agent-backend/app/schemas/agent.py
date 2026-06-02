@@ -94,3 +94,9 @@ class LocalConfigResponse(BaseModel):
     semanticScholarBaseUrl: str
     mineruApiTokenConfigured: bool
     mineruParseMode: str
+
+
+class LocalShutdownResponse(BaseModel):
+    message: str
+    backendPids: List[int] = Field(default_factory=list)
+    frontendPids: List[int] = Field(default_factory=list)
