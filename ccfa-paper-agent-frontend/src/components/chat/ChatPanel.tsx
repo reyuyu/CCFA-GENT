@@ -1,4 +1,4 @@
-import { Braces, CheckCircle2, Loader2 } from "lucide-react";
+import { Braces, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildAgentContext, sendMessageToAgentStream } from "../../agent/agentAdapter";
 import { useProjectStore } from "../../store/projectStore";
@@ -33,7 +33,7 @@ function claimsFileChange(content: string) {
 
 function AgentProgressCard({ events }: { events: AgentProgressEvent[] }) {
   const latestEvent = events[events.length - 1];
-  const visibleHistory = events.slice(Math.max(0, events.length - 5), Math.max(0, events.length - 1));
+  const visibleHistory = events.slice(Math.max(0, events.length - 6));
 
   return (
     <div className="flex justify-start">
@@ -43,17 +43,21 @@ function AgentProgressCard({ events }: { events: AgentProgressEvent[] }) {
           <span className="font-medium">{latestEvent?.message ?? "正在读取论文工程信息..."}</span>
         </div>
         {visibleHistory.length ? (
-          <div className="mt-3 space-y-1.5 border-l border-morandi-clay/70 pl-3">
+          <ol className="mt-3 space-y-2 border-l border-morandi-clay/70 pl-3">
             {visibleHistory.map((event, index) => (
-              <div
+              <li
                 key={`${event.createdAt}-${index}`}
-                className="flex items-start gap-2 text-xs text-morandi-muted"
+                className="grid grid-cols-[22px_minmax(0,1fr)] items-start gap-2 text-xs text-morandi-muted"
               >
-                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sage-600" />
-                <span>{event.message}</span>
-              </div>
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#d8e1d5] text-[10px] font-semibold text-sage-700">
+                  {Math.max(1, events.length - visibleHistory.length + index + 1)}
+                </span>
+                <span className={event === latestEvent ? "font-medium text-morandi-ink" : ""}>
+                  {event.message}
+                </span>
+              </li>
             ))}
-          </div>
+          </ol>
         ) : null}
       </div>
     </div>
@@ -103,9 +107,11 @@ export function ChatPanel({ project }: { project: PaperProject }) {
         .getState()
         .projects.find((candidate) => candidate.id === project.id);
       const latestThread = latestProject?.threads.find((candidate) => candidate.id === thread.id);
+      let runProgressEvents: AgentProgressEvent[] = [];
       const reply = await sendMessageToAgentStream(latestProject ?? project, latestThread ?? thread, content, {
         onProgress: (event) => {
-          setProgressEvents((currentEvents) => [...currentEvents, event].slice(-8));
+          runProgressEvents = [...runProgressEvents, event];
+          setProgressEvents(runProgressEvents);
         }
       });
       const hasFileChangePatch = Boolean(
@@ -120,7 +126,8 @@ export function ChatPanel({ project }: { project: PaperProject }) {
         id: createId("msg"),
         role: "assistant",
         content: assistantContent,
-        createdAt: nowIso()
+        createdAt: nowIso(),
+        progressEvents: runProgressEvents
       });
 
       reply.patches?.forEach((patch) => applyAgentPatch(project.id, patch));
