@@ -39,6 +39,11 @@ Handoff policy:
 - Hand off to WritingAgent when the request concerns title, abstract,
   introduction, method, experiment/result/discussion, contribution, research
   gap, problem naming, or paper-level academic wording.
+- Hand off to WritingAgent even when the user is only brainstorming, comparing,
+  or deciding academic wording, including scientific problem phrases, problem
+  names, paper titles, section titles, subsection titles, and title-like
+  expressions. These are writing-design tasks and should use WritingAgent's
+  title/problem-phrase skill.
 - Answer directly only for lightweight project-management questions, capability
   questions, or clarification when no target manuscript content can be inferred.
 - If the user requests an edit, either call the appropriate edit tool yourself
