@@ -4,7 +4,9 @@
 
 ## 一键本地运行
 
-Windows 用户下载项目后，在项目根目录运行：
+### Windows
+
+下载项目后，在项目根目录运行：
 
 ```powershell
 .\start-local.ps1
@@ -32,6 +34,27 @@ start-local.bat
 powershell -ExecutionPolicy Bypass -File .\start-local.ps1
 ```
 
+### macOS / Linux
+
+下载项目后，在项目根目录运行：
+
+```bash
+chmod +x ./start-local.sh
+./start-local.sh
+```
+
+脚本会自动完成：
+
+- 创建或复用后端虚拟环境 `.venv310`
+- 复制 `ccfa-paper-agent-backend/.env.example` 为本地 `.env`
+- 安装后端依赖
+- 安装前端依赖
+- 启动后端 `http://127.0.0.1:8000`
+- 启动前端 `http://127.0.0.1:5173`
+- 在 macOS 上自动打开前端主页
+
+macOS 用户建议使用 Chrome 或 Edge 打开前端页面。Safari 对本地目录读写能力支持不完整，可能影响工程目录保存和恢复。
+
 ## 本地 API Key 配置
 
 打开主页后，可以在“本地运行配置”中填写自己的 Key：
@@ -52,7 +75,7 @@ ccfa-paper-agent-backend/.env
 
 如果不使用一键脚本，也可以手动启动。
 
-后端：
+Windows 后端：
 
 ```powershell
 cd ccfa-paper-agent-backend
@@ -69,6 +92,24 @@ npm install
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
+macOS / Linux 后端：
+
+```bash
+cd ccfa-paper-agent-backend
+python3.10 -m venv .venv310
+source .venv310/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+macOS / Linux 前端：
+
+```bash
+cd ccfa-paper-agent-frontend
+npm install
+npm run dev -- --host 127.0.0.1 --port 5173
+```
+
 ## 目录结构
 
 ```text
@@ -77,10 +118,11 @@ ccfa-paper-agent-frontend/   前端工作台
 设计文档管理/                 项目规划与设计笔记
 start-local.ps1              Windows 一键启动脚本
 start-local.bat              Windows 双击启动入口
+start-local.sh               macOS / Linux 一键启动脚本
 ```
 
 ## 注意事项
 
 - 不要把真实 API Key 写入 `.env.example` 或提交到仓库。
-- 推荐使用 Python 3.10。
+- 推荐使用 Python 3.10 和 Node.js 20+。
 - 如果端口 `8000` 或 `5173` 被占用，请先关闭已有服务，或修改启动脚本中的端口。
