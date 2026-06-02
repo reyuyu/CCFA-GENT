@@ -175,7 +175,7 @@ export function FileUploadBox({
           }
         }}
       />
-      {error ? <p className="mt-2 text-xs text-red-600">{error}</p> : null}
+      {error ? <p className="mt-2 whitespace-pre-line text-xs leading-5 text-red-600">{error}</p> : null}
       {!project?.workspace?.rootDirectoryHandle ? (
         <p className="mt-2 text-xs text-[#8a6d3b]">
           当前工程缺少目录权限，文件会暂存为浏览器副本。
