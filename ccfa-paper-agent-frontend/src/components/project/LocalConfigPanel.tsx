@@ -8,7 +8,7 @@ import { Input } from "../ui/Input";
 const defaultForm = {
   deepseekApiKey: "",
   deepseekBaseUrl: "https://api.deepseek.com",
-  deepseekModel: "deepseek-chat",
+  deepseekModel: "deepseek-v4-pro",
   semanticScholarApiKey: "",
   semanticScholarBaseUrl: "https://api.semanticscholar.org/graph/v1",
   mineruApiToken: "",
@@ -135,7 +135,7 @@ export function LocalConfigPanel() {
             className="mt-2"
             value={form.deepseekModel}
             onChange={(event) => update("deepseekModel", event.target.value)}
-            placeholder="deepseek-chat"
+            placeholder="deepseek-v4-pro"
           />
         </div>
 

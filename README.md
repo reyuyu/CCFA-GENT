@@ -87,7 +87,7 @@ chmod +x ./start-local.sh
 | 配置项 | 是否必需 | 用途 |
 | --- | --- | --- |
 | DeepSeek API Key | 必需 | 驱动 PaperManagerAgent / WritingAgent |
-| DeepSeek Model | 必需 | 默认可在主页或 `.env` 中调整 |
+| DeepSeek Model | 必需 | 默认 `deepseek-v4-pro`，可在主页或 `.env` 中调整 |
 | Semantic Scholar API Key | 可选 | 学术论文检索，未填写时仍会尝试匿名请求 |
 | MinerU API Token | 可选 | PDF 精准解析 |
 
