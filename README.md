@@ -103,22 +103,7 @@ ccfa-paper-agent-backend/.env
 
 ## Agent Architecture
 
-```mermaid
-flowchart LR
-  User["User"] --> UI["React Workspace"]
-  UI --> API["FastAPI Backend"]
-  API --> PM["PaperManagerAgent"]
-  PM --> W["PaperWritingAgent"]
-  PM --> R["SemanticScholarRetrievalAgent"]
-  W --> R
-  W --> Skills["Writing Skills"]
-  PM --> Tools["Project / Draft / Reference Tools"]
-  Skills --> Intro["Introduction Skill"]
-  Skills --> Method["Method Skill"]
-  Skills --> Result["Result Skill"]
-  Skills --> Abstract["Abstract Skill"]
-  Skills --> Title["Title & Problem Phrase Skill"]
-```
+![Backend agent architecture](output/imagegen/paper-agent-backend-architecture-morandi.png)
 
 ### PaperManagerAgent
 
