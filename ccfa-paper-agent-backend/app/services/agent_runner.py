@@ -51,6 +51,9 @@ TOOL_PROGRESS_MESSAGES.update(
     }
 )
 
+TOOL_PROGRESS_MESSAGES["edit_writing_skill_file"] = "正在更新写作 skill 文件..."
+
+
 WRITING_TOOL_NAMES = {
     "edit_draft",
     "edit_draft_section",
@@ -59,6 +62,7 @@ WRITING_TOOL_NAMES = {
     "edit_project_status",
     "edit_introduction_outline",
     "edit_scientific_problem_memory",
+    "edit_writing_skill_file",
 }
 
 
@@ -96,6 +100,40 @@ CAPABILITY_QUESTION_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+MEMORY_QUESTION_PATTERN = re.compile(
+    (
+        r"((\u672c\u5730|\u8bb0\u5fc6|\u79ef\u7d2f|\u5199\u4f5c\u79ef\u7d2f|"
+        r"\u5199\u4f5c\u8868\u8fbe|\u5e38\u89c1.*intro|\u5e38\u89c1.*\u5199\u4f5c.*\u8868\u8fbe)"
+        r".*(\u6709\u6ca1\u6709|\u6709.*\u5417|\u662f\u5426.*\u6709|"
+        r"\u53ef\u4ee5.*\u5417|\u80fd.*\u5417|\u4f1a.*\u5417)|"
+        r"(\u6709\u6ca1\u6709|\u6709.*\u5417|\u662f\u5426.*\u6709)"
+        r".*(\u672c\u5730|\u8bb0\u5fc6|\u79ef\u7d2f|\u5199\u4f5c\u79ef\u7d2f|"
+        r"\u5199\u4f5c\u8868\u8fbe|\u5e38\u89c1.*intro|\u5e38\u89c1.*\u5199\u4f5c.*\u8868\u8fbe))"
+    ),
+    re.IGNORECASE,
+)
+
+SKILL_RESOURCE_COMMAND_PATTERN = re.compile(
+    (
+        r"(\u5199\u4f5c\u79ef\u7d2f|\u672c\u5730.*(\u8bb0\u5fc6|\u79ef\u7d2f)|"
+        r"intro.*\u5199\u4f5c\u79ef\u7d2f|\u5199\u4f5c\u8868\u8fbe\u5e93|"
+        r"\u597d\u8bcd\u597d\u53e5|\u8868\u8fbe\u79ef\u7d2f|"
+        r"SKILL\.md|skill file|writing skill|writing accumulation|"
+        r"accumulation file|expression library)"
+    ),
+    re.IGNORECASE,
+)
+
+MANUSCRIPT_PATCH_TARGET_PATTERN = re.compile(
+    (
+        r"(\u521d\u7a3f|\u7a3f\u4ef6|\u6b63\u6587|\u624b\u7a3f|\u8bba\u6587\u521d\u7a3f|"
+        r"\u7ae0\u8282|\u6bb5\u843d|\u7b2c.+\u6bb5|P\d+|"
+        r"Introduction|Abstract|Method|Result|Discussion|Conclusion|"
+        r"manuscript|draft manuscript|draft file|paper draft|section|paragraph)"
+    ),
+    re.IGNORECASE,
+)
+
 CLAIMED_FILE_CHANGE_PATTERN = re.compile(
     (
         r"(\u5df2.*proposeFileChange|\u5df2\u4fee\u6539|\u5df2\u6539\u5199|\u5df2\u6da6\u8272|"
@@ -104,6 +142,152 @@ CLAIMED_FILE_CHANGE_PATTERN = re.compile(
     ),
     re.IGNORECASE,
 )
+
+TEXT_EDIT_KEYWORDS = (
+    "修改",
+    "改写",
+    "润色",
+    "重写",
+    "优化",
+    "编辑",
+    "写",
+    "撰写",
+    "写入",
+    "追加",
+    "添加",
+    "插入",
+    "扩写",
+    "续写",
+    "生成",
+    "补充",
+    "加入",
+    "放入",
+    "填入",
+    "rewrite",
+    "revise",
+    "polish",
+    "modify",
+    "edit",
+    "write",
+    "draft",
+    "append",
+    "insert",
+    "add",
+    "continue",
+)
+
+TEXT_EDIT_COMMAND_HINTS = (
+    "请",
+    "请你",
+    "帮我",
+    "帮忙",
+    "麻烦",
+    "把",
+    "将",
+    "给我",
+    "直接",
+    "现在",
+    "修改第",
+    "改写第",
+    "润色第",
+    "写",
+    "撰写",
+    "写入",
+    "追加",
+    "添加",
+    "插入",
+    "扩写",
+    "续写",
+    "生成",
+    "补充",
+    "加入",
+    "放入",
+    "填入",
+    "rewrite",
+    "revise",
+    "polish",
+    "modify",
+    "edit",
+    "write",
+    "draft",
+    "append",
+    "insert",
+    "add",
+    "continue",
+)
+
+TEXT_CAPABILITY_QUESTION_TERMS = (
+    "哪些工具",
+    "什么工具",
+    "工具",
+    "可以吗",
+    "能吗",
+    "会吗",
+    "what tools",
+    "which tools",
+    "can you",
+    "are you able",
+)
+
+TEXT_SKILL_RESOURCE_TERMS = (
+    "写作积累",
+    "本地记忆",
+    "本地积累",
+    "intro写作积累",
+    "introduction写作积累",
+    "写作表达库",
+    "好词好句",
+    "表达积累",
+    "skill.md",
+    "skill file",
+    "writing skill",
+    "writing accumulation",
+    "accumulation file",
+    "expression library",
+)
+
+TEXT_MANUSCRIPT_PATCH_TARGET_TERMS = (
+    "初稿",
+    "稿件",
+    "正文",
+    "手稿",
+    "论文初稿",
+    "章节",
+    "段落",
+    "第",
+    "Introduction",
+    "Abstract",
+    "Method",
+    "Result",
+    "Discussion",
+    "Conclusion",
+    "manuscript",
+    "draft manuscript",
+    "draft file",
+    "paper draft",
+    "section",
+    "paragraph",
+)
+
+TEXT_NO_FILE_EDIT_TERMS = (
+    "不要写入",
+    "先不要写入",
+    "不写入",
+    "不要修改初稿",
+    "不修改初稿",
+    "不改初稿",
+    "只输出",
+    "只给我文本",
+    "仅输出",
+    "do not edit",
+    "don't edit",
+    "do not write into",
+)
+
+
+def _contains_any_text(message: str, terms: tuple[str, ...]) -> bool:
+    lowered = message.lower()
+    return any(term.lower() in lowered for term in terms)
 
 
 def _extract_json_object(text: str) -> Optional[dict[str, Any]]:
@@ -146,17 +330,56 @@ def _has_tool_generated_patch(patches: Optional[list[Any]]) -> bool:
 
 
 def _is_capability_question(message: str) -> bool:
-    return bool(CAPABILITY_QUESTION_PATTERN.search(message))
+    return bool(
+        CAPABILITY_QUESTION_PATTERN.search(message)
+        or MEMORY_QUESTION_PATTERN.search(message)
+        or _contains_any_text(message, TEXT_CAPABILITY_QUESTION_TERMS)
+    )
 
 
 def _is_edit_command(message: str) -> bool:
-    return bool(EDIT_KEYWORD_PATTERN.search(message)) and bool(
-        EDIT_COMMAND_PATTERN.search(message)
-    ) and not _is_capability_question(message)
+    has_edit_keyword = bool(EDIT_KEYWORD_PATTERN.search(message)) or _contains_any_text(
+        message,
+        TEXT_EDIT_KEYWORDS,
+    )
+    has_command_hint = bool(EDIT_COMMAND_PATTERN.search(message)) or _contains_any_text(
+        message,
+        TEXT_EDIT_COMMAND_HINTS,
+    )
+    return has_edit_keyword and has_command_hint and not _is_capability_question(message)
+
+
+def _is_skill_resource_command(message: str) -> bool:
+    return bool(
+        SKILL_RESOURCE_COMMAND_PATTERN.search(message)
+        or _contains_any_text(message, TEXT_SKILL_RESOURCE_TERMS)
+    )
+
+
+def _requires_file_change_patch(message: str) -> bool:
+    if not _is_edit_command(message):
+        return False
+    if _is_skill_resource_command(message):
+        return False
+    if _contains_any_text(message, TEXT_NO_FILE_EDIT_TERMS):
+        return False
+    return bool(
+        MANUSCRIPT_PATCH_TARGET_PATTERN.search(message)
+        or _contains_any_text(message, TEXT_MANUSCRIPT_PATCH_TARGET_TERMS)
+    )
 
 
 def _claims_file_change(content: str) -> bool:
     return bool(CLAIMED_FILE_CHANGE_PATTERN.search(content))
+
+
+def _claims_manuscript_file_change(content: str) -> bool:
+    if not _claims_file_change(content):
+        return False
+    return bool(
+        MANUSCRIPT_PATCH_TARGET_PATTERN.search(content)
+        or _contains_any_text(content, TEXT_MANUSCRIPT_PATCH_TARGET_TERMS)
+    )
 
 
 def _contains_manual_file_change_patch(parsed: dict[str, Any]) -> bool:
@@ -282,14 +505,17 @@ def _supports_required_tool_choice(model_name: str) -> bool:
 def _response_from_final_output(
     final_output: Any,
     run_context: PaperAgentRunContext,
-    is_edit_command: bool,
+    requires_file_change_patch: bool,
+    allow_non_manuscript_file_edit: bool,
 ) -> AgentResponse:
     raw_output = str(final_output).strip()
 
     parsed = _extract_json_object(raw_output)
     if not parsed:
-        if not _has_tool_generated_patch(run_context.patches) and (
-            is_edit_command or _claims_file_change(raw_output) or _looks_like_manual_patch_text(raw_output)
+        if not allow_non_manuscript_file_edit and not _has_tool_generated_patch(run_context.patches) and (
+            requires_file_change_patch
+            or _claims_manuscript_file_change(raw_output)
+            or _looks_like_manual_patch_text(raw_output)
         ):
             return _missing_edit_patch_response()
         return AgentResponse(content=raw_output, patches=run_context.patches or None)
@@ -301,8 +527,10 @@ def _response_from_final_output(
     parsed["patches"] = run_context.patches or []
 
     parsed_content = str(parsed.get("content") or "")
-    if not _has_tool_generated_patch(parsed.get("patches")) and (
-        is_edit_command or _claims_file_change(parsed_content) or has_manual_file_change_patch
+    if not allow_non_manuscript_file_edit and not _has_tool_generated_patch(parsed.get("patches")) and (
+        requires_file_change_patch
+        or _claims_manuscript_file_change(parsed_content)
+        or has_manual_file_change_patch
     ):
         return _missing_edit_patch_response()
 
@@ -351,6 +579,8 @@ async def run_paper_agent(request: AgentRequest, settings: Settings) -> AgentRes
         )
 
     is_edit_command = _is_edit_command(request.userMessage)
+    requires_file_change_patch = _requires_file_change_patch(request.userMessage)
+    allow_non_manuscript_file_edit = _is_skill_resource_command(request.userMessage)
     required_tool_choice = is_edit_command and _supports_required_tool_choice(settings.deepseek_model)
     agent = create_paper_agent(settings, tool_choice="required" if required_tool_choice else None)
     session = get_thread_session(settings, request.projectId, request.threadId)
@@ -385,9 +615,19 @@ async def run_paper_agent(request: AgentRequest, settings: Settings) -> AgentRes
             )
         except (AuthenticationError, RateLimitError, APIConnectionError, APIError) as retry_error:
             return _error_response(retry_error)
-        return _response_from_final_output(result.final_output, retry_context, is_edit_command)
+        return _response_from_final_output(
+            result.final_output,
+            retry_context,
+            requires_file_change_patch,
+            allow_non_manuscript_file_edit,
+        )
 
-    return _response_from_final_output(result.final_output, run_context, is_edit_command)
+    return _response_from_final_output(
+        result.final_output,
+        run_context,
+        requires_file_change_patch,
+        allow_non_manuscript_file_edit,
+    )
 
 
 async def run_paper_agent_stream(
@@ -414,6 +654,8 @@ async def run_paper_agent_stream(
         return
 
     is_edit_command = _is_edit_command(request.userMessage)
+    requires_file_change_patch = _requires_file_change_patch(request.userMessage)
+    allow_non_manuscript_file_edit = _is_skill_resource_command(request.userMessage)
     required_tool_choice = is_edit_command and _supports_required_tool_choice(settings.deepseek_model)
     agent = create_paper_agent(settings, tool_choice="required" if required_tool_choice else None)
     session = get_thread_session(settings, request.projectId, request.threadId)
@@ -439,7 +681,12 @@ async def run_paper_agent_stream(
             if progress:
                 yield {"type": "progress", "event": progress}
 
-        response = _response_from_final_output(result.final_output, run_context, is_edit_command)
+        response = _response_from_final_output(
+            result.final_output,
+            run_context,
+            requires_file_change_patch,
+            allow_non_manuscript_file_edit,
+        )
         yield {
             "type": "progress",
             "event": _progress_event("done", "回答已生成。"),
@@ -485,7 +732,8 @@ async def run_paper_agent_stream(
             response = _response_from_final_output(
                 retry_result.final_output,
                 retry_context,
-                is_edit_command,
+                requires_file_change_patch,
+                allow_non_manuscript_file_edit,
             )
             yield {
                 "type": "progress",

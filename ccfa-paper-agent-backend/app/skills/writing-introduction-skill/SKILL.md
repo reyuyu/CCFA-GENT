@@ -41,11 +41,23 @@ In this situation, clearly tell the user which specific material is insufficient
 
 All Introduction writing must follow a sentence-by-sentence process. Each sentence should be carefully written, checked, and connected to the surrounding context.
 
-### 1.5 Self-check principle
+### 1.4.1 Sentence-level transition principle
+
+For every sentence or sentence group, the agent should consider whether a connective or transition expression is needed to make the logical relationship explicit. This includes, but is not limited to, concession, contrast, progression, cause, consequence, comparison, limitation, and emphasis transitions, such as `despite`, `however`, `nevertheless`, `therefore`, `in contrast`, or `in particular`.
+
+If the current source-material sentence group already has complete and coherent transition wording, the agent should prioritize the source material and avoid adding unnecessary self-generated connectives. Connectives should improve local logic, not decorate the sentence.
+
+### 1.5 Writing-accumulation principle
+
+The skill folder contains a `写作积累` directory for reusable writing observations learned from reference papers. The agent may read and edit Markdown files in this directory with `list_writing_skill_files`, `read_writing_skill_file`, and `edit_writing_skill_file` to record strong academic expressions, especially connective expressions, degree adjectives, degree adverbs, other useful adjectives/adverbs, reusable academic sentence patterns, and Introduction-level writing logic.
+
+These accumulated expressions are auxiliary writing resources. They can help when expression quality is weak, but they must never override the user's requirement, the current draft, verified project context, or reusable source material from reference papers.
+
+### 1.6 Self-check principle
 
 After completing the current writing task, the agent must perform a strict writing self-check.
 
-### 1.6 Outline-first principle
+### 1.7 Outline-first principle
 
 Before writing, the agent must first clarify the paragraph-level outline of the Introduction. Each paragraph in the outline should be represented by one sentence describing what that paragraph should write.
 
@@ -75,6 +87,8 @@ For every Introduction writing or revision task, follow this workflow:
 
    When useful references exist, use `list_reference_sections` and `get_reference_section_content` to inspect relevant Introduction, Related Work, Method, or Experiment sections.
 
+   When the agent reads reference papers to search for writing material, it may record valuable writing observations in Markdown files under `写作积累` with `edit_writing_skill_file`, especially strong connective expressions, degree adjectives, degree adverbs, other useful adjectives/adverbs, reusable academic sentence patterns, and Introduction writing logic. Record only reusable observations or short fragments; do not copy long passages.
+
 4. Prepare the writing context.
 
    Collect the source material, current draft content, paragraph status, preceding writing context, established terminology, and user-provided information.
@@ -86,6 +100,8 @@ For every Introduction writing or revision task, follow this workflow:
 5. Start sentence-by-sentence writing.
 
    Follow the requirements in Section 3. Each sentence should be grounded in user information, draft context, references, or clearly marked cautious reasoning.
+
+   During sentence-level writing, if the agent feels the expression is weak or the logical connection is underpowered, it may inspect Markdown files under `写作积累` with `list_writing_skill_files` and `read_writing_skill_file` to see whether any accumulated expression or sentence pattern can be adapted. This has ordinary priority only and must remain lower priority than source material, draft context, and user requirements.
 
 6. Perform a self-check.
 
@@ -117,7 +133,11 @@ For each sentence, follow this process:
 
 3. Ensure the sentence has a clear logical relationship with the previous sentence and prepares a logical connection to the next sentence.
 
-4. Keep terminology consistent with the title, draft, method names, problem names, datasets, metrics, and contribution keywords.
+4. Judge whether this sentence or sentence group needs an explicit connective expression. Consider the intended relation, such as concession, contrast, progression, cause, consequence, comparison, limitation, or emphasis. If the source sentence group already provides a complete transition, keep it rather than adding a new connective.
+
+5. If the sentence's expression is weak and source material does not already solve the problem, optionally consult `写作积累` for reusable academic connectives, degree modifiers, adjective/adverb choices, sentence patterns, or Introduction logic patterns. Use this only as an auxiliary resource.
+
+6. Keep terminology consistent with the title, draft, method names, problem names, datasets, metrics, and contribution keywords.
 
 ## 4. Self-Check Requirements
 
@@ -130,6 +150,8 @@ Check whether the paragraph matches the outline requirement and ensure that it d
 ### 4.2 Logic check
 
 Check whether the paragraph has strict logical coherence and whether there is a reasonable transition between sentences and between paragraphs.
+
+Check whether each sentence or sentence group uses connective expressions appropriately: add a connective only when it clarifies the relationship, and remove or avoid one when the source material or surrounding prose already makes the transition clear.
 
 ### 4.3 Concept check
 

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from agents import RunContextWrapper, function_tool
 
@@ -9,6 +9,7 @@ from app.skills.registry import SKILLS_ROOT
 
 
 MAX_SKILL_FILE_CHARS = 30000
+MAX_SKILL_WRITE_CHARS = 30000
 
 
 def _relative_skill_file(skill_directory: Path, relative_path: str) -> Path:
@@ -20,6 +21,18 @@ def _relative_skill_file(skill_directory: Path, relative_path: str) -> Path:
         raise ValueError(f"Skill file path escapes the skill directory: {relative_path}")
     if not candidate.exists() or not candidate.is_file():
         raise ValueError(f"Skill file not found: {relative_path}")
+    return candidate
+
+
+def _relative_skill_file_for_write(skill_directory: Path, relative_path: str) -> Path:
+    normalized = relative_path.replace("\\", "/").strip().lstrip("/")
+    if not normalized:
+        raise ValueError("relative_path is required")
+    candidate = (skill_directory / normalized).resolve()
+    if skill_directory.resolve() != candidate and skill_directory.resolve() not in candidate.parents:
+        raise ValueError(f"Skill file path escapes the skill directory: {relative_path}")
+    if candidate.suffix.lower() not in {".md", ".txt"}:
+        raise ValueError("Only Markdown or text skill files can be edited")
     return candidate
 
 
@@ -112,9 +125,44 @@ def read_writing_skill_file(
     }
 
 
+@function_tool
+def edit_writing_skill_file(
+    wrapper: RunContextWrapper[PaperAgentRunContext],
+    skill_id: str,
+    relative_path: str,
+    content: str,
+    mode: Literal["append", "replace"] = "append",
+) -> dict[str, Any]:
+    """Create, replace, or append to a Markdown/text file inside one writing skill folder."""
+    skill = get_writing_skill(skill_id)
+    path = _relative_skill_file_for_write(skill.directory, relative_path)
+    if len(content) > MAX_SKILL_WRITE_CHARS:
+        raise ValueError(f"content is too long; maximum is {MAX_SKILL_WRITE_CHARS} characters")
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    existed = path.exists()
+    previous_content = path.read_text(encoding="utf-8") if existed else ""
+    if mode == "append" and previous_content:
+        separator = "" if previous_content.endswith("\n") else "\n"
+        next_content = f"{previous_content}{separator}{content.strip()}\n"
+    else:
+        next_content = content.strip() + "\n"
+    path.write_text(next_content, encoding="utf-8")
+
+    return {
+        "skillId": skill.id,
+        "name": skill.name,
+        "relativePath": path.relative_to(skill.directory).as_posix(),
+        "mode": mode,
+        "created": not existed,
+        "sizeBytes": path.stat().st_size,
+    }
+
+
 WRITING_SKILL_TOOLS = [
     list_writing_skill_registry,
     read_writing_skill_instruction,
     list_writing_skill_files,
     read_writing_skill_file,
+    edit_writing_skill_file,
 ]
