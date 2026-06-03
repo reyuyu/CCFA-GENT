@@ -5,32 +5,49 @@
 ![React](https://img.shields.io/badge/React-Frontend-61DAFB?style=flat-square&logo=react&logoColor=1f2937)
 ![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![Local First](https://img.shields.io/badge/Local--First-Workspace-7C8F7A?style=flat-square)
+![Agents](https://img.shields.io/badge/Multi--Agent-Paper%20Writing-8A7E72?style=flat-square)
 
-一个面向 CCF-A / SCI 英文论文写作的本地 Agent 工作台。
+[English](README.md) | [中文](README.zh-CN.md)
 
-CCFA Paper Agent 不是简单的聊天窗口，而是一个围绕“论文工程”组织起来的写作系统：它会管理初稿、参考论文、图片、段落状态、Introduction 大纲、科学问题记忆、学术检索结果，并通过 PaperManagerAgent、WritingAgent 和 SemanticScholarRetrievalAgent 协同完成论文写作、润色、改写和选题措辞设计。
+**CCFA Paper Agent** is a local-first multi-agent workspace for research paper writing, revision, and literature-grounded manuscript editing.
+
+It is designed for the real workflow behind CCF-A / SCI-style academic writing: organizing drafts, reference papers, figures, section plans, scientific problem memory, literature retrieval results, and controlled manuscript patches in one project-centered environment.
+
+Unlike a generic chatbot, CCFA Paper Agent treats a paper as an evolving research artifact. It reads project context, selects section-specific writing skills, retrieves candidate evidence when the local corpus is insufficient, generates reviewable patches, and asks the user to confirm every file change before it is applied.
 
 ## Highlights
 
-- 本地论文工程管理：初稿、核心参考论文、可参考论文、图片和项目状态集中管理。
-- Academic Writing Agent：支持 Introduction、Method、Result、Abstract、标题与科学问题短语等写作技能。
-- Reference-grounded Writing：优先利用本地参考论文和项目材料，避免凭空写作。
-- Semantic Scholar Retrieval Agent：当本地语料不足时，可检索候选论文供用户确认。
-- MinerU PDF Parsing：上传参考论文 PDF 后自动解析为 Markdown，并保留图片资源。
-- Draft Patch Review：Agent 修改初稿时生成待确认 patch，用户确认后才写入文件。
-- Streaming Process Trace：实时展示 Agent 思考与工具调用过程，完成后仍可回看。
-- Local-first Key Storage：DeepSeek、Semantic Scholar、MinerU 等 Key 仅保存到本机 `.env`。
+- **Project-centered writing workspace**: manage drafts, reference papers, image assets, project metadata, paragraph status, Introduction outlines, and scientific problem memory.
+- **Multi-agent backend**: `PaperManagerAgent` coordinates the task, `WritingAgent` handles manuscript writing, and `SemanticScholarRetrievalAgent` works as a retrieval agent wrapped as a tool.
+- **Reference-grounded writing**: the agent prefers local drafts, verified project materials, and curated reference papers instead of unsupported free-form generation.
+- **Confirm-before-write patches**: manuscript edits are returned as structured patches and reviewed by the user before touching local files.
+- **Writing skill registry**: section-aware skills for Introduction, Method, Result, Abstract, title design, and scientific problem phrasing.
+- **Semantic Scholar retrieval**: search, citation expansion, and reference expansion help discover candidate papers when evidence is missing.
+- **Streaming trace**: the frontend can display agent progress, tool calls, handoffs, and final responses in real time.
+- **Local-first API key storage**: DeepSeek, Semantic Scholar, and MinerU credentials stay in the local backend `.env`.
 
-## Preview
+## Architecture
 
-当前项目包含一个完整的本地 Web 工作台：
+![Backend agent architecture](output/imagegen/paper-agent-backend-architecture-morandi.png)
 
-- 前端：React + TypeScript + Vite + Tailwind
-- 后端：FastAPI + OpenAI Agents SDK compatible workflow
-- 模型：DeepSeek API compatible chat completions
-- 本地文件：基于浏览器 File System Access API
+## Agent System
 
-建议使用 Chrome 或 Edge 打开前端页面。Safari 对本地目录读写能力支持不完整。
+**PaperManagerAgent** is the control agent. It interprets the user request, inspects project context, decides whether to answer directly or hand off to `WritingAgent`, and coordinates retrieval, project tools, and patch generation.
+
+**WritingAgent** owns academic manuscript work. It reads the relevant writing skill before drafting or revising, checks the scientific problem memory, uses local drafts and references, and emits structured edit patches when a manuscript change is needed.
+
+**SemanticScholarRetrievalAgent** is exposed through `retrieve_academic_papers`. It chooses among open search, citation expansion, and reference expansion, then returns candidate papers for user confirmation. Retrieval results are recommendations only; they are not automatically written into the reference library.
+
+## What The System Can Do
+
+- Revise, polish, rewrite, or extend manuscript sections.
+- Generate Introduction paragraph outlines and maintain them as project state.
+- Track scientific problems, innovations, and key technologies as writing constraints.
+- Read draft sections, paragraphs, paragraph status, and reference-paper sections.
+- Propose full-section or paragraph-level manuscript edits.
+- Maintain and inspect reusable writing-skill files.
+- Search Semantic Scholar for related papers, citations, and foundational references.
+- Parse reference-paper PDFs with MinerU and preserve Markdown plus image assets.
 
 ## Quick Start
 
@@ -38,24 +55,24 @@ CCFA Paper Agent 不是简单的聊天窗口，而是一个围绕“论文工程
 
 - Python 3.10+
 - Node.js 20+
-- Chrome / Edge
-- DeepSeek API Key
+- Chrome or Edge
+- DeepSeek API key
 
 ### Windows
 
-在项目根目录运行：
+Run from the repository root:
 
 ```powershell
 .\start-local.ps1
 ```
 
-也可以直接双击：
+You can also double-click:
 
 ```text
 start-local.bat
 ```
 
-如果 PowerShell 阻止脚本执行：
+If PowerShell blocks script execution:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\start-local.ps1
@@ -63,125 +80,41 @@ powershell -ExecutionPolicy Bypass -File .\start-local.ps1
 
 ### macOS / Linux
 
-在项目根目录运行：
+Run from the repository root:
 
 ```bash
 chmod +x ./start-local.sh
 ./start-local.sh
 ```
 
-脚本会自动完成：
+The startup script installs dependencies, prepares the backend environment, starts the FastAPI backend at `http://127.0.0.1:8000`, starts the Vite frontend at `http://127.0.0.1:5173`, and opens the local workspace.
 
-- 创建或复用后端虚拟环境 `.venv310`
-- 复制 `ccfa-paper-agent-backend/.env.example` 为本地 `.env`
-- 安装后端依赖
-- 安装前端依赖
-- 启动后端 `http://127.0.0.1:8000`
-- 启动前端 `http://127.0.0.1:5173`
-- 打开前端主页
+## Configuration
 
-关闭服务：在主页“本地 API 配置”卡片中点击“关闭本地服务”，即可结束本地前端和后端后台进程。
-
-## API Key Configuration
-
-首次进入主页后，在“本地 API 配置”中填写自己的 Key：
-
-| 配置项 | 是否必需 | 用途 |
-| --- | --- | --- |
-| DeepSeek API Key | 必需 | 驱动 PaperManagerAgent / WritingAgent |
-| DeepSeek Model | 必需 | 默认 `deepseek-v4-pro`，可在主页或 `.env` 中调整 |
-| Semantic Scholar API Key | 可选 | 学术论文检索，未填写时仍会尝试匿名请求 |
-| MinerU API Token | 可选 | PDF 精准解析 |
-
-这些配置只会保存到本机：
+Fill in local API credentials from the frontend configuration panel, or edit:
 
 ```text
 ccfa-paper-agent-backend/.env
 ```
 
-`.env` 已被 `.gitignore` 忽略。不要把真实 API Key 写入 `.env.example` 或提交到仓库。
+| Key | Required | Purpose |
+| --- | --- | --- |
+| `DEEPSEEK_API_KEY` | Yes | Drives `PaperManagerAgent` and `WritingAgent` |
+| `DEEPSEEK_MODEL` | Yes | Chat model used by the backend agent runner |
+| `SEMANTIC_SCHOLAR_API_KEY` | Optional | Improves Semantic Scholar rate limits |
+| `MINERU_API_TOKEN` | Optional | Enables PDF parsing into Markdown |
 
-## Agent Architecture
-
-![Backend agent architecture](output/imagegen/paper-agent-backend-architecture-morandi.png)
-
-### PaperManagerAgent
-
-主控 Agent，负责理解用户请求、检查工程上下文、决定直接处理还是 handoff 到 WritingAgent，并管理项目工具调用。
-
-### PaperWritingAgent
-
-写作 Agent，负责英文 CCF-A / SCI 论文的写作、改写、润色、标题设计、科学问题短语凝练和结构优化。
-
-### SemanticScholarRetrievalAgent
-
-检索 Agent，负责在本地参考论文不足时调用 Semantic Scholar，返回候选论文。检索结果不会自动加入参考库，必须由用户确认。
-
-## Writing Skills
-
-写作 Agent 会根据任务选择对应 skill，并先读取该 skill 的 `SKILL.md`：
-
-| Skill | 适用任务 |
-| --- | --- |
-| `writing-introduction-skill` | Introduction、motivation、gap、problem formulation、contribution framing |
-| `writing-method-skill` | Method、framework、module、algorithm、loss、training、inference |
-| `writing-result-skill` | Experiment、result、ablation、comparison、visualization、discussion |
-| `writing-abstract-skill` | Abstract |
-| `writing-title-problem-phrase-skill` | 标题、小标题、方法名、问题名、科学问题短语 |
-
-核心原则：
-
-- 用户信息用于提供方向，不直接当作论文英文语料。
-- 有参考论文和语料时，优先最小化改动地迁移可用表达。
-- 没有充分语料时，不强行写作，应先检索或向用户说明缺口。
-- 已 finalized / locked 的段落不会被修改，除非用户明确授权。
+Never commit real API keys. The local `.env` file is ignored by Git.
 
 ## Project Workflow
 
-1. 创建或打开本地论文工程。
-2. 上传初稿 Markdown、参考论文 PDF / Markdown、实验图片等材料。
-3. 使用 MinerU 将参考论文 PDF 解析为 Markdown。
-4. 填写参考论文元信息、核心参考标记、Semantic Scholar Paper ID。
-5. 维护 Introduction 大纲和科学问题记忆。
-6. 与 Paper Agent 对话，进行写作、润色、标题设计、检索和 patch 生成。
-7. 在前端确认 Agent 生成的文件修改，再写回本地工程。
-
-## Manual Start
-
-### Windows Backend
-
-```powershell
-cd ccfa-paper-agent-backend
-.\.venv310\Scripts\Activate.ps1
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-```
-
-### Windows Frontend
-
-```powershell
-cd ccfa-paper-agent-frontend
-npm install
-npm run dev -- --host 127.0.0.1 --port 5173
-```
-
-### macOS / Linux Backend
-
-```bash
-cd ccfa-paper-agent-backend
-python3.10 -m venv .venv310
-source .venv310/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-```
-
-### macOS / Linux Frontend
-
-```bash
-cd ccfa-paper-agent-frontend
-npm install
-npm run dev -- --host 127.0.0.1 --port 5173
-```
+1. Create or open a local paper project.
+2. Upload draft Markdown, reference PDFs or Markdown files, and figures.
+3. Parse reference PDFs with MinerU when needed.
+4. Add reference metadata, core-reference labels, and Semantic Scholar paper IDs.
+5. Maintain the Introduction outline and scientific problem memory.
+6. Chat with the paper agent for revision, writing, title design, retrieval, and patch generation.
+7. Review proposed file changes in the frontend before applying them to local files.
 
 ## Repository Structure
 
@@ -189,64 +122,63 @@ npm run dev -- --host 127.0.0.1 --port 5173
 .
 ├── ccfa-paper-agent-backend/      FastAPI backend, agents, tools, services
 ├── ccfa-paper-agent-frontend/     React frontend workspace
-├── 设计文档管理/                   project planning and design notes
+├── output/imagegen/               Generated project visuals for README/docs
+├── 设计文档管理/                   Project planning and design notes
 ├── start-local.ps1                Windows one-click startup
 ├── start-local.bat                Windows double-click startup
 ├── start-local.sh                 macOS / Linux one-click startup
-└── README.md
+├── README.md                      English project overview
+└── README.zh-CN.md                Chinese project overview
 ```
 
-## Local Data & Privacy
+## Development
 
-CCFA Paper Agent is designed as a local-first writing workspace.
-
-- Project files are stored in the local project folder selected by the user.
-- Runtime API keys are stored in `ccfa-paper-agent-backend/.env`.
-- Browser project state can be restored from `.agent/project-state.json`.
-- Agent edits are proposed as patches and require user confirmation.
-- Candidate retrieval results are not automatically written into the reference library.
-
-## Troubleshooting
-
-### Frontend opens but Agent cannot answer
-
-Check that the backend is running:
-
-```text
-http://127.0.0.1:8000/health
-```
-
-Then confirm the DeepSeek API Key has been filled in the homepage configuration panel.
-
-### Port 8000 or 5173 is already occupied
-
-Close the existing process or edit the startup script port.
-
-### How do I stop the local services?
-
-Open the homepage and click `关闭本地服务` in the local API configuration panel. This calls the backend shutdown endpoint and stops the local frontend and backend development servers.
-
-### macOS cannot save or restore project folders
-
-Use Chrome or Edge and grant directory read/write permission when prompted.
-
-### MinerU Markdown images are missing
-
-Keep the generated `.mineru.assets` folder next to the parsed Markdown file. When opening an existing project, the frontend will reload image assets from that folder.
-
-## Development Notes
-
-Recommended checks before committing:
+Backend sanity check:
 
 ```bash
 cd ccfa-paper-agent-backend
 python -m compileall app
 ```
 
+Frontend build:
+
 ```bash
 cd ccfa-paper-agent-frontend
 npm run build
 ```
+
+Manual backend start:
+
+```bash
+cd ccfa-paper-agent-backend
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Manual frontend start:
+
+```bash
+cd ccfa-paper-agent-frontend
+npm run dev -- --host 127.0.0.1 --port 5173
+```
+
+## Roadmap
+
+- Candidate-paper cards with one-click reference-library import.
+- DOI, arXiv ID, and Semantic Scholar Corpus ID recognition.
+- Retrieval deduplication and venue-aware ranking.
+- Evaluation agents for structure, claim-evidence alignment, and full-paper review.
+- Automatic open-access PDF download followed by MinerU parsing after user confirmation.
+- A public demo video or GIF for the repository landing page.
+
+## Local Data & Privacy
+
+CCFA Paper Agent is designed as a local-first writing workspace.
+
+- Project files stay in the local folder selected by the user.
+- Runtime API keys are stored in `ccfa-paper-agent-backend/.env`.
+- Browser project state can be restored from `.agent/project-state.json`.
+- Agent edits are proposed as patches and require user confirmation.
+- Candidate retrieval results are not automatically written into the reference library.
 
 ## License
 
