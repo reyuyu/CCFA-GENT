@@ -37,3 +37,7 @@ Thumbs.db
 
 # Local app artifacts
 .agent/
+
+# Personal writing-skill accumulation
+ccfa-paper-agent-backend/app/skills/writing-introduction-skill/写作积累/*
+!ccfa-paper-agent-backend/app/skills/writing-introduction-skill/写作积累/README.md
