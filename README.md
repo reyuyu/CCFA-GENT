@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="output/imagegen/ccfa-paper-agent-dark-icon.png" alt="CCFA Paper Agent icon" width="132" />
+<img src="output/imagegen/ccfa-paper-agent-minimal-icon.png" alt="CCFA Paper Agent icon" width="132" />
 
 # CCFA Paper Agent
 
