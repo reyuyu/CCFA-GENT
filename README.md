@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="output/imagegen/ccfa-paper-agent-dark-icon.png" alt="CCFA Paper Agent icon" width="132" />
+
 # CCFA Paper Agent
 
 **A local-first multi-agent workspace for CCF-A / SCI paper writing, checking, retrieval, and confirmed manuscript editing.**
@@ -28,7 +30,7 @@
 | Frontend | React, Vite, TypeScript, Tailwind CSS | Local paper workspace, chat threads, file panels, patch review, streaming trace |
 | Backend | FastAPI, OpenAI Agents SDK, DeepSeek-compatible model adapter | Agent orchestration, handoff routing, tool execution, JSON response contract |
 | Agents | `PaperManagerAgent`, `WritingAgent`, `PaperCheckAgent`, `SemanticScholarRetrievalAgent` | Writing, checking, retrieval, evidence gathering, and controlled patch generation |
-| Local data | Markdown drafts, reference papers, figures, IndexedDB state, optional local workspace path | Project-centered manuscript context and recoverable local state |
+| Local data | Markdown drafts, MinerU-parsed PDFs, reference papers, figures, phrase memory, IndexedDB state, optional local workspace path | Project-centered manuscript context and recoverable local state |
 | Safety boundary | Tool-generated patches plus frontend confirmation | No silent file overwrite; every manuscript edit is reviewable before application |
 
 ## What It Is
@@ -42,8 +44,10 @@ The system is built around agent handoffs. `PaperManagerAgent` routes the reques
 - **Project-centered paper workspace**: manage draft manuscripts, core references, optional references, figures, project metadata, paragraph states, Introduction outlines, and scientific problem memory.
 - **Writing agent with skills**: section-aware writing skills for Introduction, Method, Result, Abstract, title design, and scientific problem phrasing.
 - **Checking agent with skills**: review-style checks for Introduction quality, evidence sufficiency, sentence logic, concept alignment, tone, and revision cost.
+- **MinerU PDF parsing**: automatically parse paper PDFs with MinerU and organize them into precise Markdown files for downstream reading, retrieval, and evidence grounding.
 - **Reference-grounded generation**: prefer local drafts, verified project context, and curated references over unsupported free-form text.
 - **Semantic Scholar retrieval**: open search, citation expansion, and reference expansion return candidate papers for user confirmation.
+- **Dynamic phrase memory**: accumulate useful academic phrases, strong sentence patterns, and reusable wording during agent runs, then save them locally for future writing.
 - **Confirm-before-write editing**: edit tools emit structured patches; the frontend displays diffs and waits for user approval.
 - **Streaming observability**: tool calls, handoffs, intermediate progress, patch proposals, and final responses can be displayed in real time.
 - **Local-first credentials**: DeepSeek, Semantic Scholar, and MinerU keys stay in the backend `.env`.

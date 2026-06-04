@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="output/imagegen/ccfa-paper-agent-dark-icon.png" alt="CCFA Paper Agent icon" width="132" />
+
 # CCFA Paper Agent
 
 **面向 CCF-A / SCI 论文写作、检查、检索和可确认改稿的本地优先 multi-agent 工作台。**
@@ -28,7 +30,7 @@
 | 前端工作台 | React, Vite, TypeScript, Tailwind CSS | 本地论文工程、聊天线程、文件面板、patch 审阅、streaming trace |
 | 后端服务 | FastAPI, OpenAI Agents SDK, DeepSeek 兼容模型适配 | Agent 编排、handoff 路由、工具执行、JSON 响应契约 |
 | Agent 层 | `PaperManagerAgent`, `WritingAgent`, `PaperCheckAgent`, `SemanticScholarRetrievalAgent` | 写作、检查、检索、证据组织和可确认 patch 生成 |
-| 本地数据 | Markdown 初稿、参考论文、图片、IndexedDB 状态、可选本地工程路径 | 项目级论文上下文和可恢复本地状态 |
+| 本地数据 | Markdown 初稿、MinerU 解析后的 PDF、参考论文、图片、好词好句记忆、IndexedDB 状态、可选本地工程路径 | 项目级论文上下文和可恢复本地状态 |
 | 安全边界 | 工具生成 patch + 前端确认 | 不静默覆盖文件，所有初稿修改必须先预览再应用 |
 
 ## 这是什么
@@ -44,8 +46,10 @@
 - **本地论文工程管理**：集中管理初稿、核心参考论文、可选参考论文、图片、项目元信息和段落状态。
 - **写作 Agent + Skills**：支持 Introduction、Method、Result、Abstract、标题和科学问题短语等章节写作能力。
 - **检查 Agent + Skills**：支持 Introduction 质量检查、语料充分性、逐句逻辑、概念对齐、语气强弱和修改成本判断。
+- **MinerU PDF 自动解析**：基于 MinerU 自动解析论文 PDF，并整理成结构精确、可被 Agent 读取和检索的 Markdown 文件。
 - **Reference-grounded Writing**：优先使用本地初稿、项目材料和参考论文，减少无依据生成。
 - **Semantic Scholar 检索**：支持开放检索、被引扩展和参考文献扩展，返回候选证据供用户确认。
+- **动态积累功能**：Agent 在运行过程中自动沉淀好词好句、优秀句式和可复用学术表达，并保存到本地供后续写作调用。
 - **可确认的文件修改**：Agent 修改初稿时生成结构化 patch，用户确认后才写入本地文件。
 - **Streaming Trace**：实时展示 Agent 思考、工具调用、handoff、patch 和最终响应。
 - **Local-first Key Storage**：DeepSeek、Semantic Scholar、MinerU 等 Key 仅保存在本地 `.env`。
