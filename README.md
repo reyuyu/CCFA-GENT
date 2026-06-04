@@ -1,53 +1,70 @@
+<div align="center">
+
 # CCFA Paper Agent
 
-![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=flat-square&logo=fastapi&logoColor=white)
-![React](https://img.shields.io/badge/React-Frontend-61DAFB?style=flat-square&logo=react&logoColor=1f2937)
-![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178C6?style=flat-square&logo=typescript&logoColor=white)
-![Local First](https://img.shields.io/badge/Local--First-Workspace-7C8F7A?style=flat-square)
-![Agents](https://img.shields.io/badge/Multi--Agent-Paper%20Writing-8A7E72?style=flat-square)
+**A local-first multi-agent workspace for CCF-A / SCI paper writing, checking, retrieval, and confirmed manuscript editing.**
 
 [English](README.md) | [中文](README.zh-CN.md)
 
-**CCFA Paper Agent** is a local-first multi-agent workspace for research paper writing, revision, and literature-grounded manuscript editing.
+![Python](https://img.shields.io/badge/Python-3.10+-6F7F6A?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-Agent%20Backend-7C9A92?style=for-the-badge&logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-Vite%20Workspace-8EA7B8?style=for-the-badge&logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-Strict%20UI-7F8DA8?style=for-the-badge&logo=typescript&logoColor=white)
+![OpenAI Agents](https://img.shields.io/badge/OpenAI%20Agents-Handoff%20Runtime-9A8F7A?style=for-the-badge)
+![Local First](https://img.shields.io/badge/Local--First-Confirm%20Before%20Write-AE8F83?style=for-the-badge)
 
-It is designed for the real workflow behind CCF-A / SCI-style academic writing: organizing drafts, reference papers, figures, section plans, scientific problem memory, literature retrieval results, and controlled manuscript patches in one project-centered environment.
+</div>
 
-Unlike a generic chatbot, CCFA Paper Agent treats a paper as an evolving research artifact. It reads project context, selects section-specific writing skills, retrieves candidate evidence when the local corpus is insufficient, generates reviewable patches, and asks the user to confirm every file change before it is applied.
+---
 
-## Highlights
+![CCFA Paper Agent architecture](output/imagegen/ccfa-paper-agent-architecture-cvpr-morandi.png)
 
-- **Project-centered writing workspace**: manage drafts, reference papers, image assets, project metadata, paragraph status, Introduction outlines, and scientific problem memory.
-- **Multi-agent backend**: `PaperManagerAgent` coordinates the task, `WritingAgent` handles manuscript writing, and `SemanticScholarRetrievalAgent` works as a retrieval agent wrapped as a tool.
-- **Reference-grounded writing**: the agent prefers local drafts, verified project materials, and curated reference papers instead of unsupported free-form generation.
-- **Confirm-before-write patches**: manuscript edits are returned as structured patches and reviewed by the user before touching local files.
-- **Writing skill registry**: section-aware skills for Introduction, Method, Result, Abstract, title design, and scientific problem phrasing.
-- **Semantic Scholar retrieval**: search, citation expansion, and reference expansion help discover candidate papers when evidence is missing.
-- **Streaming trace**: the frontend can display agent progress, tool calls, handoffs, and final responses in real time.
-- **Local-first API key storage**: DeepSeek, Semantic Scholar, and MinerU credentials stay in the local backend `.env`.
+---
 
-## Architecture
+## System Profile
 
-![Backend agent architecture](output/imagegen/paper-agent-backend-architecture-morandi.png)
+| Layer | Stack | Role |
+| --- | --- | --- |
+| Frontend | React, Vite, TypeScript, Tailwind CSS | Local paper workspace, chat threads, file panels, patch review, streaming trace |
+| Backend | FastAPI, OpenAI Agents SDK, DeepSeek-compatible model adapter | Agent orchestration, handoff routing, tool execution, JSON response contract |
+| Agents | `PaperManagerAgent`, `WritingAgent`, `PaperCheckAgent`, `SemanticScholarRetrievalAgent` | Writing, checking, retrieval, evidence gathering, and controlled patch generation |
+| Local data | Markdown drafts, reference papers, figures, IndexedDB state, optional local workspace path | Project-centered manuscript context and recoverable local state |
+| Safety boundary | Tool-generated patches plus frontend confirmation | No silent file overwrite; every manuscript edit is reviewable before application |
 
-## Agent System
+## What It Is
 
-**PaperManagerAgent** is the control agent. It interprets the user request, inspects project context, decides whether to answer directly or hand off to `WritingAgent`, and coordinates retrieval, project tools, and patch generation.
+CCFA Paper Agent is not a generic chatbot. It treats a paper as a living research artifact: drafts, reference papers, image assets, paragraph status, Introduction outlines, scientific problem memory, retrieval results, and manuscript patches are all part of one local project.
 
-**WritingAgent** owns academic manuscript work. It reads the relevant writing skill before drafting or revising, checks the scientific problem memory, uses local drafts and references, and emits structured edit patches when a manuscript change is needed.
+The system is built around agent handoffs. `PaperManagerAgent` routes the request, `WritingAgent` writes and revises manuscript content, `PaperCheckAgent` performs review-style diagnosis, and `SemanticScholarRetrievalAgent` provides candidate evidence through an agent-as-tool interface.
 
-**SemanticScholarRetrievalAgent** is exposed through `retrieve_academic_papers`. It chooses among open search, citation expansion, and reference expansion, then returns candidate papers for user confirmation. Retrieval results are recommendations only; they are not automatically written into the reference library.
+## Core Capabilities
 
-## What The System Can Do
+- **Project-centered paper workspace**: manage draft manuscripts, core references, optional references, figures, project metadata, paragraph states, Introduction outlines, and scientific problem memory.
+- **Writing agent with skills**: section-aware writing skills for Introduction, Method, Result, Abstract, title design, and scientific problem phrasing.
+- **Checking agent with skills**: review-style checks for Introduction quality, evidence sufficiency, sentence logic, concept alignment, tone, and revision cost.
+- **Reference-grounded generation**: prefer local drafts, verified project context, and curated references over unsupported free-form text.
+- **Semantic Scholar retrieval**: open search, citation expansion, and reference expansion return candidate papers for user confirmation.
+- **Confirm-before-write editing**: edit tools emit structured patches; the frontend displays diffs and waits for user approval.
+- **Streaming observability**: tool calls, handoffs, intermediate progress, patch proposals, and final responses can be displayed in real time.
+- **Local-first credentials**: DeepSeek, Semantic Scholar, and MinerU keys stay in the backend `.env`.
 
-- Revise, polish, rewrite, or extend manuscript sections.
-- Generate Introduction paragraph outlines and maintain them as project state.
-- Track scientific problems, innovations, and key technologies as writing constraints.
-- Read draft sections, paragraphs, paragraph status, and reference-paper sections.
-- Propose full-section or paragraph-level manuscript edits.
-- Maintain and inspect reusable writing-skill files.
-- Search Semantic Scholar for related papers, citations, and foundational references.
-- Parse reference-paper PDFs with MinerU and preserve Markdown plus image assets.
+## Agent Architecture
+
+### `PaperManagerAgent`
+
+The coordinator. It interprets the user request, inspects compact project context, and decides whether to answer directly or hand off to a specialist agent.
+
+### `WritingAgent`
+
+The manuscript authoring agent. It reads the relevant writing skill before drafting or revising, checks scientific problem memory, uses local drafts and references, and emits patch proposals when file edits are requested.
+
+### `PaperCheckAgent`
+
+The manuscript checking agent. It reads checking skills, locates the target paragraph or sentence, inspects paragraph status, checks references and project alignment, and returns evidence-based review findings. It does not edit the draft unless the user explicitly confirms patch generation.
+
+### `SemanticScholarRetrievalAgent`
+
+The literature discovery agent exposed through `retrieve_academic_papers`. It returns candidate papers and evidence packs, but never automatically adds them to the local reference library.
 
 ## Quick Start
 
@@ -87,7 +104,7 @@ chmod +x ./start-local.sh
 ./start-local.sh
 ```
 
-The startup script installs dependencies, prepares the backend environment, starts the FastAPI backend at `http://127.0.0.1:8000`, starts the Vite frontend at `http://127.0.0.1:5173`, and opens the local workspace.
+The script installs dependencies, prepares the backend environment, starts FastAPI at `http://127.0.0.1:8000`, starts Vite at `http://127.0.0.1:5173`, and opens the local workspace.
 
 ## Configuration
 
@@ -99,8 +116,8 @@ ccfa-paper-agent-backend/.env
 
 | Key | Required | Purpose |
 | --- | --- | --- |
-| `DEEPSEEK_API_KEY` | Yes | Drives `PaperManagerAgent` and `WritingAgent` |
-| `DEEPSEEK_MODEL` | Yes | Chat model used by the backend agent runner |
+| `DEEPSEEK_API_KEY` | Yes | Drives the backend agents |
+| `DEEPSEEK_MODEL` | Yes | Chat model used by the agent runner |
 | `SEMANTIC_SCHOLAR_API_KEY` | Optional | Improves Semantic Scholar rate limits |
 | `MINERU_API_TOKEN` | Optional | Enables PDF parsing into Markdown |
 
@@ -113,17 +130,17 @@ Never commit real API keys. The local `.env` file is ignored by Git.
 3. Parse reference PDFs with MinerU when needed.
 4. Add reference metadata, core-reference labels, and Semantic Scholar paper IDs.
 5. Maintain the Introduction outline and scientific problem memory.
-6. Chat with the paper agent for revision, writing, title design, retrieval, and patch generation.
+6. Ask the agent system to write, check, retrieve, revise, or generate patch proposals.
 7. Review proposed file changes in the frontend before applying them to local files.
 
 ## Repository Structure
 
 ```text
 .
-├── ccfa-paper-agent-backend/      FastAPI backend, agents, tools, services
-├── ccfa-paper-agent-frontend/     React frontend workspace
-├── output/imagegen/               Generated project visuals for README/docs
-├── 设计文档管理/                   Project planning and design notes
+├── ccfa-paper-agent-backend/      FastAPI backend, agents, tools, prompts, skills
+├── ccfa-paper-agent-frontend/     React local workspace
+├── output/imagegen/               README and documentation visuals
+├── 设计文档管理/                   Project design notes
 ├── start-local.ps1                Windows one-click startup
 ├── start-local.bat                Windows double-click startup
 ├── start-local.sh                 macOS / Linux one-click startup
@@ -161,18 +178,7 @@ cd ccfa-paper-agent-frontend
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
-## Roadmap
-
-- Candidate-paper cards with one-click reference-library import.
-- DOI, arXiv ID, and Semantic Scholar Corpus ID recognition.
-- Retrieval deduplication and venue-aware ranking.
-- Evaluation agents for structure, claim-evidence alignment, and full-paper review.
-- Automatic open-access PDF download followed by MinerU parsing after user confirmation.
-- A public demo video or GIF for the repository landing page.
-
-## Local Data & Privacy
-
-CCFA Paper Agent is designed as a local-first writing workspace.
+## Local Data And Privacy
 
 - Project files stay in the local folder selected by the user.
 - Runtime API keys are stored in `ccfa-paper-agent-backend/.env`.

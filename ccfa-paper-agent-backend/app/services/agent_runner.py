@@ -52,6 +52,14 @@ TOOL_PROGRESS_MESSAGES.update(
 )
 
 TOOL_PROGRESS_MESSAGES["edit_writing_skill_file"] = "正在更新写作 skill 文件..."
+TOOL_PROGRESS_MESSAGES.update(
+    {
+        "list_checking_skill_registry": "正在查看检查 skill 注册表...",
+        "read_checking_skill_instruction": "正在读取检查 skill 指令...",
+        "list_checking_skill_files": "正在查看检查 skill 文件...",
+        "read_checking_skill_file": "正在读取检查 skill 文件...",
+    }
+)
 
 
 WRITING_TOOL_NAMES = {
@@ -120,6 +128,30 @@ SKILL_RESOURCE_COMMAND_PATTERN = re.compile(
         r"\u597d\u8bcd\u597d\u53e5|\u8868\u8fbe\u79ef\u7d2f|"
         r"SKILL\.md|skill file|writing skill|writing accumulation|"
         r"accumulation file|expression library)"
+    ),
+    re.IGNORECASE,
+)
+
+CHECK_REQUEST_PATTERN = re.compile(
+    (
+        r"(\u68c0\u67e5|\u8bc4\u4ef7|\u8bc4\u4f30|\u8bca\u65ad|\u5ba1\u7a3f|"
+        r"\u770b\u770b|\u770b\u4e00\u4e0b|\u5199\u5f97\u600e\u4e48\u6837|"
+        r"\u5199\u7684\u600e\u4e48\u6837|\u5199\u5f97\u597d\u4e0d\u597d|"
+        r"\u5199\u7684\u597d\u4e0d\u597d|\u597d\u4e0d\u597d|\u600e\u4e48\u6837|"
+        r"\u901a\u987a|\u5145\u8db3|\u5bf9\u9f50|\u5408\u9002|\u5408\u7406|"
+        r"\u6709\u4ec0\u4e48\u95ee\u9898|\u95ee\u9898|"
+        r"check|evaluate|assess|review|diagnose|what do you think|how is)"
+    ),
+    re.IGNORECASE,
+)
+
+EXPLICIT_FILE_EDIT_PATTERN = re.compile(
+    (
+        r"(\u4fee\u6539|\u6539\u5199|\u6da6\u8272|\u91cd\u5199|\u4f18\u5316|"
+        r"\u7f16\u8f91|\u5199\u5165|\u8ffd\u52a0|\u6dfb\u52a0|\u63d2\u5165|"
+        r"\u6269\u5199|\u7eed\u5199|\u751f\u6210|\u8865\u5145|\u52a0\u5165|"
+        r"\u653e\u5165|\u586b\u5165|\u6309.*\u6539|\u6839\u636e.*\u6539|"
+        r"patch|rewrite|revise|polish|modify|edit|append|insert|add)"
     ),
     re.IGNORECASE,
 )
@@ -356,7 +388,13 @@ def _is_skill_resource_command(message: str) -> bool:
     )
 
 
+def _is_check_only_request(message: str) -> bool:
+    return bool(CHECK_REQUEST_PATTERN.search(message)) and not bool(EXPLICIT_FILE_EDIT_PATTERN.search(message))
+
+
 def _requires_file_change_patch(message: str) -> bool:
+    if _is_check_only_request(message):
+        return False
     if not _is_edit_command(message):
         return False
     if _is_skill_resource_command(message):
@@ -578,7 +616,8 @@ async def run_paper_agent(request: AgentRequest, settings: Settings) -> AgentRes
             )
         )
 
-    is_edit_command = _is_edit_command(request.userMessage)
+    is_check_only_request = _is_check_only_request(request.userMessage)
+    is_edit_command = _is_edit_command(request.userMessage) and not is_check_only_request
     requires_file_change_patch = _requires_file_change_patch(request.userMessage)
     allow_non_manuscript_file_edit = _is_skill_resource_command(request.userMessage)
     required_tool_choice = is_edit_command and _supports_required_tool_choice(settings.deepseek_model)
@@ -653,7 +692,8 @@ async def run_paper_agent_stream(
         yield {"type": "final", "response": response.model_dump(mode="json", exclude_none=True)}
         return
 
-    is_edit_command = _is_edit_command(request.userMessage)
+    is_check_only_request = _is_check_only_request(request.userMessage)
+    is_edit_command = _is_edit_command(request.userMessage) and not is_check_only_request
     requires_file_change_patch = _requires_file_change_patch(request.userMessage)
     allow_non_manuscript_file_edit = _is_skill_resource_command(request.userMessage)
     required_tool_choice = is_edit_command and _supports_required_tool_choice(settings.deepseek_model)

@@ -1,33 +1,72 @@
+<div align="center">
+
 # CCFA Paper Agent
+
+**面向 CCF-A / SCI 论文写作、检查、检索和可确认改稿的本地优先 multi-agent 工作台。**
 
 [English](README.md) | [中文](README.zh-CN.md)
 
-**CCFA Paper Agent** 是一个面向 CCF-A / SCI 英文论文写作的本地优先 multi-agent 工作台。
+![Python](https://img.shields.io/badge/Python-3.10+-6F7F6A?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-Agent%20Backend-7C9A92?style=for-the-badge&logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-Vite%20Workspace-8EA7B8?style=for-the-badge&logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-Strict%20UI-7F8DA8?style=for-the-badge&logo=typescript&logoColor=white)
+![OpenAI Agents](https://img.shields.io/badge/OpenAI%20Agents-Handoff%20Runtime-9A8F7A?style=for-the-badge)
+![Local First](https://img.shields.io/badge/Local--First-Confirm%20Before%20Write-AE8F83?style=for-the-badge)
 
-它不是简单的聊天窗口，而是围绕“论文工程”组织起来的写作系统：管理初稿、参考论文、图片、段落状态、Introduction 大纲、科学问题记忆、学术检索结果，并通过 `PaperManagerAgent`、`WritingAgent` 和 `SemanticScholarRetrievalAgent` 协同完成论文写作、润色、改写、检索和可确认的文件修改。
+</div>
 
-## 核心亮点
+---
+
+![CCFA Paper Agent 架构图](output/imagegen/ccfa-paper-agent-architecture-cvpr-morandi.png)
+
+---
+
+## 系统概览
+
+| 层级 | 技术栈 | 职责 |
+| --- | --- | --- |
+| 前端工作台 | React, Vite, TypeScript, Tailwind CSS | 本地论文工程、聊天线程、文件面板、patch 审阅、streaming trace |
+| 后端服务 | FastAPI, OpenAI Agents SDK, DeepSeek 兼容模型适配 | Agent 编排、handoff 路由、工具执行、JSON 响应契约 |
+| Agent 层 | `PaperManagerAgent`, `WritingAgent`, `PaperCheckAgent`, `SemanticScholarRetrievalAgent` | 写作、检查、检索、证据组织和可确认 patch 生成 |
+| 本地数据 | Markdown 初稿、参考论文、图片、IndexedDB 状态、可选本地工程路径 | 项目级论文上下文和可恢复本地状态 |
+| 安全边界 | 工具生成 patch + 前端确认 | 不静默覆盖文件，所有初稿修改必须先预览再应用 |
+
+## 这是什么
+
+**CCFA Paper Agent** 不是普通聊天窗口，而是围绕“论文工程”组织起来的本地优先写作系统。
+
+它把初稿、参考论文、图片、段落状态、Introduction 大纲、科学问题记忆、学术检索结果和可确认文件修改放在同一个项目上下文里。Agent 不直接凭空写论文，而是读取工程材料、选择对应 skill、检索候选证据，并在需要改稿时生成前端可审阅的 patch。
+
+系统采用 handoff 架构：`PaperManagerAgent` 负责调度，`WritingAgent` 负责写作和改稿，`PaperCheckAgent` 负责检查和审稿式诊断，`SemanticScholarRetrievalAgent` 负责学术检索。
+
+## 核心能力
 
 - **本地论文工程管理**：集中管理初稿、核心参考论文、可选参考论文、图片、项目元信息和段落状态。
-- **后端多 Agent 架构**：`PaperManagerAgent` 负责任务调度，`WritingAgent` 负责论文写作，`SemanticScholarRetrievalAgent` 作为 agent-as-tool 提供检索能力。
-- **Reference-grounded Writing**：优先使用本地初稿、项目材料和参考论文，避免凭空生成。
+- **写作 Agent + Skills**：支持 Introduction、Method、Result、Abstract、标题和科学问题短语等章节写作能力。
+- **检查 Agent + Skills**：支持 Introduction 质量检查、语料充分性、逐句逻辑、概念对齐、语气强弱和修改成本判断。
+- **Reference-grounded Writing**：优先使用本地初稿、项目材料和参考论文，减少无依据生成。
+- **Semantic Scholar 检索**：支持开放检索、被引扩展和参考文献扩展，返回候选证据供用户确认。
 - **可确认的文件修改**：Agent 修改初稿时生成结构化 patch，用户确认后才写入本地文件。
-- **写作 Skill Registry**：支持 Introduction、Method、Result、Abstract、标题和科学问题短语等写作技能。
-- **Semantic Scholar 检索**：支持开放检索、被引扩展和参考文献扩展。
-- **Streaming Trace**：实时展示 Agent 思考、工具调用、handoff 和最终响应。
+- **Streaming Trace**：实时展示 Agent 思考、工具调用、handoff、patch 和最终响应。
 - **Local-first Key Storage**：DeepSeek、Semantic Scholar、MinerU 等 Key 仅保存在本地 `.env`。
-
-## 架构图
-
-![Backend agent architecture](output/imagegen/paper-agent-backend-architecture-morandi.png)
 
 ## Agent 角色
 
-**PaperManagerAgent** 是主控 Agent，负责理解用户请求、检查工程上下文、决定直接处理还是 handoff 给 `WritingAgent`，并协调项目工具、检索工具和 patch 生成。
+### `PaperManagerAgent`
 
-**WritingAgent** 负责真实的论文写作、改写、润色和结构优化。它会先读取对应写作 skill，再结合初稿、参考论文和科学问题记忆生成内容或文件修改 patch。
+主控 Agent。它理解用户请求、读取紧凑工程上下文，并决定直接回答、handoff 到写作 Agent，还是 handoff 到检查 Agent。
 
-**SemanticScholarRetrievalAgent** 通过 `retrieve_academic_papers` 暴露为工具。它会根据任务选择 open search、citation expansion 或 reference expansion，并返回候选论文供用户确认。检索结果不会自动加入参考库。
+### `WritingAgent`
+
+论文写作 Agent。它在写作或改稿前读取对应 writing skill，结合初稿、参考论文、Introduction 大纲和科学问题记忆生成论文文本或 patch。
+
+### `PaperCheckAgent`
+
+论文检查 Agent。它读取 checking skill，定位目标段落或句子，检查段落状态、参考支撑、逻辑衔接、概念一致性、信息对齐、语气和修改成本。默认只给检查意见，不修改初稿；只有用户明确确认后才生成 patch。
+
+### `SemanticScholarRetrievalAgent`
+
+学术检索 Agent，通过 `retrieve_academic_papers` 暴露为工具。它根据任务选择开放检索、被引扩展或参考文献扩展，返回候选论文和证据包。检索结果不会自动加入参考库。
 
 ## 快速开始
 
@@ -79,7 +118,7 @@ ccfa-paper-agent-backend/.env
 
 | 配置项 | 是否必需 | 用途 |
 | --- | --- | --- |
-| `DEEPSEEK_API_KEY` | 必需 | 驱动 `PaperManagerAgent` 和 `WritingAgent` |
+| `DEEPSEEK_API_KEY` | 必需 | 驱动后端 Agent |
 | `DEEPSEEK_MODEL` | 必需 | 后端 Agent Runner 使用的聊天模型 |
 | `SEMANTIC_SCHOLAR_API_KEY` | 可选 | 提高 Semantic Scholar 检索限额 |
 | `MINERU_API_TOKEN` | 可选 | 支持 PDF 解析为 Markdown |
@@ -93,15 +132,15 @@ ccfa-paper-agent-backend/.env
 3. 使用 MinerU 将参考论文 PDF 解析为 Markdown。
 4. 维护参考论文元信息、核心参考标记和 Semantic Scholar Paper ID。
 5. 维护 Introduction 大纲和科学问题记忆。
-6. 与 Paper Agent 对话，进行写作、润色、标题设计、检索和 patch 生成。
+6. 与 Paper Agent 对话，进行写作、检查、检索、标题设计和 patch 生成。
 7. 在前端确认 Agent 生成的文件修改，再写回本地工程。
 
 ## 仓库结构
 
 ```text
 .
-├── ccfa-paper-agent-backend/      FastAPI backend, agents, tools, services
-├── ccfa-paper-agent-frontend/     React frontend workspace
+├── ccfa-paper-agent-backend/      FastAPI backend, agents, tools, prompts, skills
+├── ccfa-paper-agent-frontend/     React local workspace
 ├── output/imagegen/               README/docs 使用的生成图
 ├── 设计文档管理/                   项目规划和设计文档
 ├── start-local.ps1                Windows 一键启动脚本
