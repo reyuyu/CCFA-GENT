@@ -1,4 +1,12 @@
-import { ChevronDown, ChevronRight, CircleCheck, CircleDot, Wrench } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  CircleCheck,
+  CircleDot,
+  PenLine,
+  Search,
+  Wrench
+} from "lucide-react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -6,10 +14,17 @@ import type { ChatMessage as ChatMessageType } from "../../types/chat";
 
 function eventIcon(type: string) {
   if (type === "tool_start" || type === "retrieving") {
-    return <Wrench className="mt-0.5 h-3.5 w-3.5 text-[#6c7f76]" />;
+    return type === "retrieving" ? (
+      <Search className="mt-0.5 h-3.5 w-3.5 text-[#6c7f76]" />
+    ) : (
+      <Wrench className="mt-0.5 h-3.5 w-3.5 text-[#6c7f76]" />
+    );
   }
   if (type === "tool_end" || type === "done") {
     return <CircleCheck className="mt-0.5 h-3.5 w-3.5 text-sage-700" />;
+  }
+  if (type === "writing") {
+    return <PenLine className="mt-0.5 h-3.5 w-3.5 text-[#7f625a]" />;
   }
   return <CircleDot className="mt-0.5 h-3.5 w-3.5 text-[#8b7968]" />;
 }
@@ -22,20 +37,24 @@ function AgentProcessTrace({ events }: { events: NonNullable<ChatMessageType["pr
     <div className="mt-3 border-t border-[#d6cbbf] pt-3">
       <button
         type="button"
-        className="flex items-center gap-1.5 text-xs font-medium text-[#66766f] transition hover:text-morandi-ink"
+        className="group flex items-center gap-1.5 rounded-md px-1 py-1 text-xs font-medium text-[#66766f] transition-all duration-200 hover:bg-white/42 hover:text-morandi-ink"
         onClick={() => setOpen((current) => !current)}
       >
-        {open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+        {open ? (
+          <ChevronDown className="h-3.5 w-3.5 transition-transform group-hover:translate-y-0.5" />
+        ) : (
+          <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+        )}
         查看思考和调用过程
         <span className="rounded-full bg-[#d8e1d5] px-1.5 py-0.5 text-[10px] text-sage-700">
           {events.length}
         </span>
       </button>
       {open ? (
-        <ol className="mt-3 space-y-2 border-l border-[#d1c4b8] pl-3">
+        <ol className="mt-3 space-y-2 rounded-lg border border-[#d1c4b8]/70 bg-white/32 p-3 animate-paper-fade-up">
           {events.map((event, index) => (
-            <li key={`${event.createdAt}-${index}`} className="grid grid-cols-[24px_minmax(0,1fr)] gap-2 text-xs">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#efe8df] text-[10px] font-semibold text-[#7d6e60]">
+            <li key={`${event.createdAt}-${index}`} className="grid grid-cols-[28px_minmax(0,1fr)] gap-2 text-xs">
+              <span className="flex h-6 w-6 items-center justify-center rounded-md border border-morandi-clay/70 bg-[#efe8df] text-[10px] font-semibold text-[#7d6e60]">
                 {index + 1}
               </span>
               <div className="min-w-0">
@@ -60,9 +79,9 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
   const isSystem = message.role === "system";
 
   return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+    <div className={`flex animate-paper-fade-up ${isUser ? "justify-end" : "justify-start"}`}>
       <article
-        className={`max-w-[78%] rounded-lg px-4 py-3 shadow-md ${
+        className={`max-w-[78%] rounded-lg px-4 py-3 shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-panel ${
           isUser
             ? "bg-[#657d86] text-white shadow-[#657d86]/18 [&_*]:text-white"
             : isSystem

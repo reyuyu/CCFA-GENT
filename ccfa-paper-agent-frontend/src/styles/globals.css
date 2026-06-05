@@ -23,11 +23,162 @@ body {
   margin: 0;
   overflow: hidden;
   background:
-    radial-gradient(circle at top left, rgba(216, 224, 227, 0.48), transparent 34%),
-    linear-gradient(180deg, rgba(250, 248, 244, 0.92) 0%, rgba(238, 232, 223, 0.72) 100%),
+    linear-gradient(135deg, rgba(216, 224, 227, 0.48), transparent 38%),
+    linear-gradient(180deg, rgba(250, 248, 244, 0.94) 0%, rgba(238, 232, 223, 0.72) 100%),
     #f7f3ee;
   font-size: 15px;
   line-height: 1.5;
+}
+
+.paper-home-bg {
+  background:
+    linear-gradient(90deg, rgba(61, 58, 54, 0.05) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(61, 58, 54, 0.045) 1px, transparent 1px),
+    linear-gradient(120deg, rgba(216, 224, 227, 0.72) 0%, rgba(247, 243, 238, 0.94) 38%, rgba(235, 226, 215, 0.88) 100%);
+  background-size: 32px 32px, 32px 32px, auto;
+}
+
+.paper-home-kicker {
+  font-size: 0.9rem;
+  font-weight: 720;
+  letter-spacing: 0;
+}
+
+.paper-home-title {
+  font-family: "Noto Serif SC", "Source Han Serif SC", "Songti SC", SimSun, Georgia, serif;
+  font-size: 2.7rem;
+  font-weight: 760;
+  letter-spacing: 0;
+  line-height: 1.18;
+  text-wrap: balance;
+}
+
+.paper-home-copy {
+  font-size: 1rem;
+  font-weight: 450;
+  letter-spacing: 0;
+  line-height: 1.82;
+  text-wrap: pretty;
+}
+
+.paper-section-title {
+  font-family: Inter, "Noto Sans SC", "Microsoft YaHei", "PingFang SC", ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.28rem;
+  font-weight: 720;
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+
+.paper-hero-panel::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.52), transparent 38%),
+    linear-gradient(90deg, rgba(110, 131, 115, 0.12), transparent 42%);
+}
+
+.paper-hero-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes paper-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes paper-soft-pulse {
+  0%,
+  100% {
+    opacity: 0.58;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes paper-scan {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(110%);
+  }
+}
+
+@keyframes paper-progress-bar {
+  0% {
+    transform: translateX(-70%) scaleX(0.36);
+  }
+  45% {
+    transform: translateX(10%) scaleX(0.78);
+  }
+  100% {
+    transform: translateX(120%) scaleX(0.36);
+  }
+}
+
+.animate-paper-fade-up {
+  animation: paper-fade-up 220ms ease-out both;
+}
+
+.agent-thinking-card {
+  position: relative;
+  isolation: isolate;
+}
+
+.agent-thinking-card::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  background:
+    linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.45) 35%, transparent 68%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.45), transparent 42%);
+  transform: translateX(-110%);
+  animation: paper-scan 3.8s ease-in-out infinite;
+}
+
+.agent-progress-track {
+  position: relative;
+  overflow: hidden;
+}
+
+.agent-progress-track::after {
+  position: absolute;
+  inset-block: 0;
+  width: 52%;
+  border-radius: 999px;
+  content: "";
+  background: linear-gradient(90deg, transparent, rgba(93, 113, 100, 0.42), transparent);
+  transform-origin: left center;
+  animation: paper-progress-bar 1.8s ease-in-out infinite;
+}
+
+.agent-live-dot {
+  animation: paper-soft-pulse 1.35s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
 
 ::selection {

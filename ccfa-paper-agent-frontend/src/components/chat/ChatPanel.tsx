@@ -1,4 +1,14 @@
-import { Braces, Loader2 } from "lucide-react";
+import {
+  Activity,
+  AlertTriangle,
+  Bot,
+  Braces,
+  CheckCircle2,
+  Loader2,
+  PenLine,
+  Search,
+  Wrench
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { buildAgentContext, sendMessageToAgentStream } from "../../agent/agentAdapter";
 import { useProjectStore } from "../../store/projectStore";
@@ -33,28 +43,73 @@ function claimsFileChange(content: string) {
 
 function AgentProgressCard({ events }: { events: AgentProgressEvent[] }) {
   const latestEvent = events[events.length - 1];
-  const visibleHistory = events.slice(Math.max(0, events.length - 6));
+  const visibleHistory = events.slice(Math.max(0, events.length - 5));
+
+  const getEventIcon = (event?: AgentProgressEvent) => {
+    if (!event) return <Bot className="h-4 w-4" />;
+    if (event.type === "tool_start" || event.type === "tool_end") {
+      return <Wrench className="h-4 w-4" />;
+    }
+    if (event.type === "retrieving") {
+      return <Search className="h-4 w-4" />;
+    }
+    if (event.type === "writing") {
+      return <PenLine className="h-4 w-4" />;
+    }
+    if (event.type === "done") {
+      return <CheckCircle2 className="h-4 w-4" />;
+    }
+    if (event.type === "error") {
+      return <AlertTriangle className="h-4 w-4" />;
+    }
+    return <Activity className="h-4 w-4" />;
+  };
 
   return (
-    <div className="flex justify-start">
-      <div className="w-full max-w-[78%] rounded-lg border border-[#b9c3bd] bg-[#f4efe7] px-4 py-3 text-sm text-morandi-muted shadow-md shadow-[#7c756e]/10">
-        <div className="flex items-center gap-2 text-morandi-ink">
-          <Loader2 className="h-4 w-4 animate-spin text-sage-700" />
-          <span className="font-medium">{latestEvent?.message ?? "正在读取论文工程信息..."}</span>
+    <div className="flex justify-start animate-paper-fade-up">
+      <div className="agent-thinking-card w-full max-w-[82%] overflow-hidden rounded-xl border border-[#b9c3bd] bg-[#f7f3ee]/92 px-4 py-3 text-sm text-morandi-muted shadow-panel shadow-[#7c756e]/10 backdrop-blur">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="relative mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#252b27] text-white shadow-sm">
+              <span className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full bg-sage-600 ring-2 ring-[#f7f3ee] agent-live-dot" />
+              {getEventIcon(latestEvent)}
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-sage-700">Agent is working</p>
+              <p className="mt-1 font-medium leading-6 text-morandi-ink">
+                {latestEvent?.message ?? "正在启动论文写作 Agent..."}
+              </p>
+            </div>
+          </div>
+          <Loader2 className="mt-1 h-4 w-4 shrink-0 animate-spin text-sage-700" />
         </div>
+
+        <div className="agent-progress-track mt-4 h-1.5 rounded-full bg-morandi-clay/45" />
+
         {visibleHistory.length ? (
-          <ol className="mt-3 space-y-2 border-l border-morandi-clay/70 pl-3">
+          <ol className="mt-4 space-y-2">
             {visibleHistory.map((event, index) => (
               <li
                 key={`${event.createdAt}-${index}`}
-                className="grid grid-cols-[22px_minmax(0,1fr)] items-start gap-2 text-xs text-morandi-muted"
+                className="grid grid-cols-[28px_minmax(0,1fr)] items-start gap-2 text-xs text-morandi-muted"
               >
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#d8e1d5] text-[10px] font-semibold text-sage-700">
-                  {Math.max(1, events.length - visibleHistory.length + index + 1)}
+                <span
+                  className={`flex h-7 w-7 items-center justify-center rounded-md border ${
+                    event === latestEvent
+                      ? "border-sage-600/45 bg-sage-100 text-sage-700"
+                      : "border-morandi-clay/70 bg-white/58 text-morandi-muted"
+                  }`}
+                >
+                  {getEventIcon(event)}
                 </span>
-                <span className={event === latestEvent ? "font-medium text-morandi-ink" : ""}>
-                  {event.message}
-                </span>
+                <div className="min-w-0 rounded-md bg-white/40 px-2.5 py-1.5">
+                  <span className={event === latestEvent ? "font-medium text-morandi-ink" : ""}>
+                    {event.message}
+                  </span>
+                  <span className="mt-0.5 block text-[10px] uppercase text-[#9a8d7f]">
+                    {event.type} · {new Date(event.createdAt).toLocaleTimeString()}
+                  </span>
+                </div>
               </li>
             ))}
           </ol>

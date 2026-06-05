@@ -96,10 +96,10 @@ export function ProjectSidebar({ project }: { project: PaperProject }) {
           <div className="grid grid-cols-2 gap-1 rounded-lg bg-morandi-clay/35 p-1">
             <button
               type="button"
-              className={`flex h-9 items-center justify-center gap-2 rounded-md text-sm font-medium transition ${
+              className={`flex h-9 items-center justify-center gap-2 rounded-md text-sm font-medium transition-all duration-200 active:scale-[0.98] ${
                 sidebarView === "files"
                   ? "bg-[#fbfaf7] text-morandi-ink shadow-sm"
-                  : "text-morandi-muted hover:text-morandi-ink"
+                  : "text-morandi-muted hover:bg-white/35 hover:text-morandi-ink"
               }`}
               onClick={() => setSidebarView("files")}
             >
@@ -108,10 +108,10 @@ export function ProjectSidebar({ project }: { project: PaperProject }) {
             </button>
             <button
               type="button"
-              className={`flex h-9 items-center justify-center gap-2 rounded-md text-sm font-medium transition ${
+              className={`flex h-9 items-center justify-center gap-2 rounded-md text-sm font-medium transition-all duration-200 active:scale-[0.98] ${
                 sidebarView === "threads"
                   ? "bg-[#fbfaf7] text-morandi-ink shadow-sm"
-                  : "text-morandi-muted hover:text-morandi-ink"
+                  : "text-morandi-muted hover:bg-white/35 hover:text-morandi-ink"
               }`}
               onClick={() => setSidebarView("threads")}
             >

@@ -15,9 +15,11 @@ function App() {
 
   if (!isHydrated) {
     return (
-      <div className="flex h-full items-center justify-center bg-[linear-gradient(135deg,#d7dfda_0%,#eee8df_56%,#d8cfc4_100%)] text-morandi-muted">
-        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-        正在载入本地论文工程...
+      <div className="paper-home-bg flex h-full items-center justify-center text-morandi-muted">
+        <div className="flex items-center rounded-lg border border-white/70 bg-[#fbfaf7]/78 px-4 py-3 shadow-soft backdrop-blur">
+          <Loader2 className="mr-2 h-5 w-5 animate-spin text-sage-700" />
+          正在载入本地论文工程...
+        </div>
       </div>
     );
   }

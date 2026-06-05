@@ -24,9 +24,9 @@ export function Modal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2f2d2a]/45 px-4 py-6 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2f2d2a]/45 px-4 py-6 backdrop-blur-sm animate-paper-fade-up">
       <div
-        className={`max-h-[92vh] w-full ${widthClass} overflow-hidden rounded-xl border border-morandi-clay/80 bg-paper-50 shadow-panel`}
+        className={`max-h-[92vh] w-full ${widthClass} overflow-hidden rounded-xl border border-white/70 bg-paper-50 shadow-panel ring-1 ring-morandi-clay/40`}
       >
         <div className="flex items-start justify-between border-b border-morandi-clay/70 bg-morandi-blue/50 px-5 py-4">
           <div className="min-w-0">

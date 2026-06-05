@@ -38,7 +38,7 @@ export function ThreadList({
         {threads.map((thread) => (
           <div
             key={thread.id}
-            className={`group flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition ${
+            className={`group flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm ${
               thread.id === activeThreadId
                 ? "bg-morandi-green font-medium text-sage-700"
                 : "text-morandi-muted hover:bg-morandi-mist"

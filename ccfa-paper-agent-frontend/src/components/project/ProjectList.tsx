@@ -1,7 +1,19 @@
-import { FileText, FolderOpen, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import {
+  ArrowRight,
+  BookOpen,
+  Bot,
+  CheckCircle2,
+  Clock,
+  Database,
+  FileText,
+  FolderOpen,
+  Plus,
+  Trash2
+} from "lucide-react";
+import { useState, type ReactNode } from "react";
 import { clearProjectAgentSessions } from "../../agent/sessionAdapter";
 import { useProjectStore } from "../../store/projectStore";
+import type { PaperProject } from "../../types/project";
 import { importProjectFromWorkspace } from "../../utils/projectImporter";
 import { isDirectoryPickerSupported } from "../../utils/workspaceFs";
 import { Badge } from "../ui/Badge";
@@ -9,6 +21,50 @@ import { Button } from "../ui/Button";
 import { EmptyState } from "../ui/EmptyState";
 import { LocalConfigPanel } from "./LocalConfigPanel";
 import { ProjectCreateModal } from "./ProjectCreateModal";
+
+const formatUpdatedAt = (updatedAt: string) =>
+  new Intl.DateTimeFormat("zh-CN", {
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(new Date(updatedAt));
+
+const countProjectFiles = (project: PaperProject) =>
+  Object.values(project.folders).reduce((total, files) => total + files.length, 0);
+
+function ProjectMetric({
+  icon,
+  label,
+  value,
+  tone = "neutral"
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string | number;
+  tone?: "neutral" | "sage" | "blue" | "rose";
+}) {
+  const toneClass = {
+    neutral: "bg-[#f4efe7] text-morandi-muted",
+    sage: "bg-sage-100 text-sage-700",
+    blue: "bg-morandi-blue text-[#536b73]",
+    rose: "bg-morandi-rose text-[#7f625a]"
+  }[tone];
+
+  return (
+    <div className="min-w-0 rounded-lg border border-white/70 bg-white/62 p-3 shadow-[0_10px_28px_rgba(61,58,54,0.06)] backdrop-blur">
+      <div className="flex items-center gap-2">
+        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${toneClass}`}>
+          {icon}
+        </span>
+        <div className="min-w-0">
+          <p className="text-xs text-morandi-muted">{label}</p>
+          <p className="truncate text-lg font-semibold text-morandi-ink">{value}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function ProjectList() {
   const projects = useProjectStore((state) => state.projects);
@@ -19,6 +75,9 @@ export function ProjectList() {
   const [createOpen, setCreateOpen] = useState(false);
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState("");
+  const writingProjects = projects.filter((project) => project.writingStatus === "writing").length;
+  const totalFiles = projects.reduce((total, project) => total + countProjectFiles(project), 0);
+  const latestProject = projects[0];
 
   const openExistingProject = async () => {
     setImporting(true);
@@ -34,20 +93,157 @@ export function ProjectList() {
   };
 
   return (
-    <main className="min-h-full overflow-y-auto bg-[linear-gradient(135deg,#d7dfda_0%,#eee8df_46%,#d8cfc4_100%)] px-6 py-8">
-      <div className="mx-auto max-w-6xl">
-        <section className="overflow-hidden rounded-xl border border-[#b8afa4]/70 bg-[#f7f3ee]/82 shadow-panel backdrop-blur">
-          <div className="grid gap-6 p-6 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-            <div className="min-w-0">
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-sage-700">
-                CCFA / SCI Paper Agent
-              </p>
-              <h1 className="mt-3 text-3xl font-semibold text-morandi-ink">论文工程</h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-morandi-muted">
-                把初稿、参考论文、图片、写作线程和项目记忆组织到同一个论文工作台里。
+    <main className="paper-home-bg h-full min-h-0 overflow-y-auto overscroll-contain px-4 py-6 text-morandi-ink sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <section className="grid min-h-[360px] gap-8 py-4 lg:grid-cols-[minmax(0,1.08fr)_420px] lg:items-center lg:py-8">
+          <div className="min-w-0">
+            <div className="flex items-center gap-3">
+              <img
+                src="/ccfa-paper-agent-dark-icon.png"
+                alt="CCFA Paper Agent"
+                className="h-14 w-14 rounded-lg border border-white/70 bg-[#1f2521] object-cover shadow-panel"
+              />
+              <div>
+                <p className="paper-home-kicker text-sage-700">CCFA / SCI Paper Agent</p>
+                <p className="mt-1 text-xs font-medium text-morandi-muted">
+                  Local-first academic writing workspace
+                </p>
+              </div>
+            </div>
+
+            <h1 className="paper-home-title mt-7 max-w-4xl text-[#26231f]">
+              让论文工程像一个清醒、可靠的研究工作台。
+            </h1>
+            <p className="paper-home-copy mt-5 max-w-2xl text-morandi-muted">
+              统一管理初稿、参考论文、图片资产、写作线程和项目记忆，把每一次修改都落在可追踪的本地工程里。
+            </p>
+
+            <div className="mt-7 flex flex-col gap-2 sm:flex-row">
+              <Button
+                variant="primary"
+                icon={<Plus className="h-4 w-4" />}
+                className="h-10 px-4"
+                onClick={() => setCreateOpen(true)}
+              >
+                创建论文工程
+              </Button>
+              <Button
+                variant="secondary"
+                icon={<FolderOpen className="h-4 w-4" />}
+                className="h-10 px-4"
+                disabled={importing || !isDirectoryPickerSupported()}
+                onClick={openExistingProject}
+              >
+                {importing ? "打开中..." : "打开已有工程"}
+              </Button>
+            </div>
+
+            <div className="mt-8 grid max-w-3xl gap-3 sm:grid-cols-3">
+              <ProjectMetric
+                icon={<BookOpen className="h-4 w-4" />}
+                label="论文工程"
+                value={projects.length}
+                tone="sage"
+              />
+              <ProjectMetric
+                icon={<Clock className="h-4 w-4" />}
+                label="写作中"
+                value={writingProjects}
+                tone="blue"
+              />
+              <ProjectMetric
+                icon={<Database className="h-4 w-4" />}
+                label="本地文件"
+                value={totalFiles}
+                tone="rose"
+              />
+            </div>
+          </div>
+
+          <div className="paper-hero-panel relative hidden overflow-hidden rounded-xl border border-white/70 bg-[#fbfaf7]/76 p-5 shadow-panel backdrop-blur lg:block">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold text-sage-700">Today focus</p>
+                <h2 className="mt-2 text-lg font-semibold text-morandi-ink">
+                  {latestProject?.paperTitle ?? "建立你的第一个论文工程"}
+                </h2>
+              </div>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#252b27] text-white">
+                <Bot className="h-5 w-5" />
+              </span>
+            </div>
+
+            <div className="mt-5 rounded-lg border border-morandi-clay/70 bg-white/64 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-medium text-morandi-ink">工程状态</span>
+                <Badge tone={latestProject?.writingStatus === "finalized" ? "green" : "blue"}>
+                  {latestProject
+                    ? latestProject.writingStatus === "finalized"
+                      ? "定稿"
+                      : "在写"
+                    : "待创建"}
+                </Badge>
+              </div>
+              <p className="mt-3 min-h-[72px] text-sm leading-6 text-morandi-muted">
+                {latestProject?.writingProgress ||
+                  "创建工程后，Agent 会把初稿段落、参考论文、图片说明和写作线程组织成一个可恢复的本地状态。"}
               </p>
             </div>
-            <div className="flex flex-col gap-2 sm:flex-row">
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-lg border border-morandi-clay/70 bg-[#f7f3ee]/72 p-3">
+                <p className="text-xs text-morandi-muted">参考与解析</p>
+                <p className="mt-2 text-2xl font-semibold text-morandi-ink">
+                  {latestProject
+                    ? latestProject.folders.coreReferences.length +
+                      latestProject.folders.optionalReferences.length
+                    : 0}
+                </p>
+              </div>
+              <div className="rounded-lg border border-morandi-clay/70 bg-[#f7f3ee]/72 p-3">
+                <p className="text-xs text-morandi-muted">写作线程</p>
+                <p className="mt-2 text-2xl font-semibold text-morandi-ink">
+                  {latestProject?.threads.length ?? 0}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 border-t border-morandi-clay/70 pt-4">
+              <div className="grid gap-3 text-sm text-morandi-muted">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-sage-700" />
+                  <span>本地工程状态持久化</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-sage-700" />
+                  <span>Agent 修改先审阅再应用</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-sage-700" />
+                  <span>参考论文、图片、段落进度统一管理</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {error ? (
+          <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-soft">
+            {error}
+          </p>
+        ) : null}
+
+        <LocalConfigPanel />
+
+        <section className="mt-7 pb-10">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="paper-section-title text-morandi-ink">论文工程</h2>
+              <p className="mt-1 text-sm text-morandi-muted">
+                从最近的研究任务进入，也可以恢复一个已有本地工程目录。
+              </p>
+            </div>
+            {projects.length > 0 ? (
               <Button
                 variant="secondary"
                 icon={<FolderOpen className="h-4 w-4" />}
@@ -56,22 +252,9 @@ export function ProjectList() {
               >
                 {importing ? "打开中..." : "打开已有工程"}
               </Button>
-              <Button variant="primary" icon={<Plus className="h-4 w-4" />} onClick={() => setCreateOpen(true)}>
-                创建工程
-              </Button>
-            </div>
+            ) : null}
           </div>
-        </section>
 
-        {error ? (
-          <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </p>
-        ) : null}
-
-        <LocalConfigPanel />
-
-        <div className="mt-6">
           {projects.length === 0 ? (
             <EmptyState
               title="还没有论文工程"
@@ -101,11 +284,11 @@ export function ProjectList() {
               {projects.map((project) => (
                 <article
                   key={project.id}
-                  className="rounded-xl border border-[#b8afa4]/70 bg-[#f7f3ee]/88 p-5 shadow-soft transition hover:-translate-y-0.5 hover:bg-[#fbfaf7]/92 hover:shadow-panel"
+                  className="group rounded-xl border border-white/70 bg-[#fbfaf7]/78 p-5 shadow-soft backdrop-blur transition hover:-translate-y-0.5 hover:border-sage-100 hover:bg-[#fffdf8]/92 hover:shadow-panel"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 gap-3">
-                      <div className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-morandi-blue text-[#536b73]">
+                      <div className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#252b27] text-white shadow-sm transition group-hover:bg-sage-700">
                         <FileText className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
@@ -135,20 +318,45 @@ export function ProjectList() {
                       {project.writingStatus === "writing" ? "在写" : "定稿"}
                     </Badge>
                     <span className="text-xs text-morandi-muted">
-                      更新于 {new Date(project.updatedAt).toLocaleString()}
+                      更新于 {formatUpdatedAt(project.updatedAt)}
                     </span>
                   </div>
                   <p className="mt-4 line-clamp-3 min-h-[60px] text-sm leading-6 text-morandi-muted">
                     {project.writingProgress || "暂无写作进度描述"}
                   </p>
-                  <Button className="mt-5 w-full" variant="secondary" onClick={() => enterProject(project.id)}>
-                    进入工程
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+                    <div className="rounded-md bg-morandi-mist/70 px-2 py-2">
+                      <p className="text-xs text-morandi-muted">初稿</p>
+                      <p className="text-sm font-semibold text-morandi-ink">
+                        {project.folders.draftManuscripts.length}
+                      </p>
+                    </div>
+                    <div className="rounded-md bg-morandi-mist/70 px-2 py-2">
+                      <p className="text-xs text-morandi-muted">参考</p>
+                      <p className="text-sm font-semibold text-morandi-ink">
+                        {project.folders.coreReferences.length + project.folders.optionalReferences.length}
+                      </p>
+                    </div>
+                    <div className="rounded-md bg-morandi-mist/70 px-2 py-2">
+                      <p className="text-xs text-morandi-muted">图片</p>
+                      <p className="text-sm font-semibold text-morandi-ink">
+                        {project.folders.draftImages.length}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    className="mt-5 w-full justify-between"
+                    variant="secondary"
+                    onClick={() => enterProject(project.id)}
+                  >
+                    <span>进入工程</span>
+                    <ArrowRight className="h-4 w-4" />
                   </Button>
                 </article>
               ))}
             </div>
           )}
-        </div>
+        </section>
       </div>
 
       <ProjectCreateModal
