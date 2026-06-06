@@ -6,7 +6,7 @@
 
 **A local-first multi-agent workspace for CCF-A / SCI paper writing, checking, retrieval, and confirmed manuscript editing.**
 
-[English](README.md) | [中文](README.zh-CN.md) | [Usage Guide](docs/USAGE.zh-CN.md)
+[English](README.md) | [中文](README.zh-CN.md) | [Usage Guide](docs/USAGE.zh-CN.md) | [Updates](docs/UPDATES.md)
 
 ![Python](https://img.shields.io/badge/Python-3.10+-6F7F6A?style=for-the-badge&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Agent%20Backend-7C9A92?style=for-the-badge&logo=fastapi&logoColor=white)

@@ -20,7 +20,11 @@ from app.schemas.mineru import MinerUParseResponse
 from app.services.agent_runner import run_paper_agent, run_paper_agent_stream
 from app.services.local_config import read_local_config, update_local_config
 from app.services.local_shutdown import collect_local_service_pids, shutdown_local_services_after_response
-from app.services.markdown_organizer import MarkdownOrganizeError, organize_markdown_sections
+from app.services.markdown_organizer import (
+    MarkdownOrganizeError,
+    clean_latex_markdown_draft,
+    organize_markdown_sections,
+)
 from app.services.mineru_parser import MinerUOptions, MinerUParseError, parse_pdf_with_mineru
 from app.services.session_service import clear_agent_project_sessions, clear_agent_thread_session
 
@@ -126,6 +130,16 @@ async def organize_markdown_sections_endpoint(
 ) -> OrganizeMarkdownResponse:
     try:
         return await organize_markdown_sections(request, settings)
+    except MarkdownOrganizeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@app.post("/api/markdown/clean-latex-draft", response_model=OrganizeMarkdownResponse)
+async def clean_latex_markdown_draft_endpoint(
+    request: OrganizeMarkdownRequest,
+) -> OrganizeMarkdownResponse:
+    try:
+        return await clean_latex_markdown_draft(request, settings)
     except MarkdownOrganizeError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 

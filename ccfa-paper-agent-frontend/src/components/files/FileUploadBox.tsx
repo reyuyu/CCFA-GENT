@@ -9,6 +9,7 @@ import {
   getAllowedExtensions,
   validateFileForFolder
 } from "../../utils/fileReader";
+import { convertLatexToMarkdown } from "../../utils/latexToMarkdown";
 import {
   sanitizeFolderName,
   sanitizeRelativeAssetPath,
@@ -42,6 +43,15 @@ export function FileUploadBox({
   const createParsedMarkdownFile = (sourceName: string, markdown: string) => {
     const markdownName = sourceName.replace(/\.pdf$/i, "") + ".mineru.md";
     return new File([markdown], markdownName, { type: "text/markdown" });
+  };
+
+  const createLatexMarkdownFile = async (file: File) => {
+    const { markdown, stats } = convertLatexToMarkdown(await file.text(), file.name);
+    const markdownName = file.name.replace(/\.tex$/i, "") + ".latex.md";
+    return {
+      markdownFile: new File([markdown], markdownName, { type: "text/markdown" }),
+      stats
+    };
   };
 
   const createAssetFolderName = (sourceName: string) => {
@@ -124,6 +134,8 @@ export function FileUploadBox({
               const shouldParsePdf =
                 file.name.toLowerCase().endsWith(".pdf") &&
                 (folderType === "coreReferences" || folderType === "optionalReferences");
+              const shouldConvertLatex =
+                file.name.toLowerCase().endsWith(".tex") && folderType === "draftManuscripts";
 
               if (shouldParsePdf) {
                 setStatusText("正在调用 MinerU 解析 PDF...");
@@ -156,6 +168,28 @@ export function FileUploadBox({
                   parsedStats: parsed.stats,
                   parsedImageAssets: parsed.assets,
                   parsedAssetFolder: assetFolderName
+                });
+                continue;
+              }
+
+              if (shouldConvertLatex) {
+                setStatusText("正在转换 LaTeX 为 Markdown...");
+                const { markdownFile, stats } = await createLatexMarkdownFile(file);
+
+                setStatusText("正在写入工程目录...");
+                const projectFile =
+                  project?.workspace?.rootDirectoryHandle
+                    ? await createProjectFileInWorkspace(project, markdownFile, folderType)
+                    : await createProjectFile(markdownFile, folderType);
+
+                uploadFileToFolder(projectId, folderType, {
+                  ...projectFile,
+                  parsedStats: {
+                    sectionCount: stats.headingCount,
+                    imageCount: 0,
+                    tableCount: 0,
+                    formulaCount: stats.formulaCount
+                  }
                 });
                 continue;
               }

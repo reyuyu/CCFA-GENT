@@ -6,7 +6,7 @@
 
 **面向 CCF-A / SCI 论文写作、检查、检索和可确认改稿的本地优先 multi-agent 工作台。**
 
-[English](README.md) | [中文](README.zh-CN.md) | [使用教程](docs/USAGE.zh-CN.md)
+[English](README.md) | [中文](README.zh-CN.md) | [使用教程](docs/USAGE.zh-CN.md) | [项目更新](docs/UPDATES.zh-CN.md)
 
 ![Python](https://img.shields.io/badge/Python-3.10+-6F7F6A?style=for-the-badge&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Agent%20Backend-7C9A92?style=for-the-badge&logo=fastapi&logoColor=white)
