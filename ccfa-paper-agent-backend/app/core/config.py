@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     deepseek_api_key: str = Field(default="", alias="DEEPSEEK_API_KEY")
     deepseek_base_url: str = Field(default="https://api.deepseek.com", alias="DEEPSEEK_BASE_URL")
     deepseek_model: str = Field(default="deepseek-v4-pro", alias="DEEPSEEK_MODEL")
+    latex_draft_clean_model: str = Field(
+        default="deepseek-v4-flash",
+        alias="LATEX_DRAFT_CLEAN_MODEL",
+    )
     agent_memory_db_path: str = Field(
         default="data/agent_sessions.sqlite3",
         alias="AGENT_MEMORY_DB_PATH",

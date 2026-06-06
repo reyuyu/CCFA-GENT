@@ -6,6 +6,7 @@ export type LocalConfig = {
   deepseekApiKeyConfigured: boolean;
   deepseekBaseUrl: string;
   deepseekModel: string;
+  latexDraftCleanModel: string;
   semanticScholarApiKeyConfigured: boolean;
   semanticScholarBaseUrl: string;
   mineruApiTokenConfigured: boolean;

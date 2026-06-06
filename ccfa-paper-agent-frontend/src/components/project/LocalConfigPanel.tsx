@@ -174,6 +174,9 @@ export function LocalConfigPanel() {
             onChange={(event) => update("deepseekModel", event.target.value)}
             placeholder="deepseek-v4-pro"
           />
+          <p className="mt-2 text-xs leading-5 text-morandi-muted">
+            LaTeX 智能解析默认使用 {config?.latexDraftCleanModel || "deepseek-v4-flash"}。
+          </p>
         </div>
 
         <div className="rounded-lg border border-morandi-clay/70 bg-[#fbfaf7]/70 p-3">

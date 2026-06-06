@@ -393,7 +393,7 @@ async def _request_heading_plan_batch(
     ]
 
     response = await client.chat.completions.create(
-        model=settings.deepseek_model,
+        model=settings.latex_draft_clean_model or settings.deepseek_model,
         temperature=0.1,
         max_tokens=settings.markdown_section_organize_max_tokens,
         messages=messages,
