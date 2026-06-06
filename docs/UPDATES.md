@@ -17,5 +17,5 @@ Major feature changes are listed here. Each entry includes English and Chinese, 
 **中文**
 
 - 初稿支持上传 `.tex` 文件，并自动转换为 `.latex.md`。
-- 新增“智能解析”：清理无关 TeX 代码，规整章节层次，保留公式和 caption。
+- 新增“智能解析”：清理无关 TeX 代码，规整章节层次，保留公式和 caption。(有待完善不推荐使用)
 - 智能解析改为分块处理，长文档不再因为模型输出长度限制直接失败。
