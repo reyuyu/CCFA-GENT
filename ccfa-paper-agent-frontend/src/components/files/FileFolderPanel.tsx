@@ -17,6 +17,7 @@ export function FileFolderPanel({
   onOrganizeSections,
   organizingFileId,
   onEditReference,
+  onRenameReference,
   onImageCaption,
   onPreviewImage,
   onDeleteFile
@@ -32,6 +33,7 @@ export function FileFolderPanel({
   onOrganizeSections: (folderType: FolderType, file: ProjectFile) => void;
   organizingFileId?: string;
   onEditReference: (folderType: FolderType, file: ProjectFile) => void;
+  onRenameReference: (folderType: FolderType, file: ProjectFile) => void;
   onImageCaption: (fileId: string, caption: string) => void;
   onPreviewImage: (file: ProjectFile) => void;
   onDeleteFile: (folderType: FolderType, file: ProjectFile) => void;
@@ -65,6 +67,7 @@ export function FileFolderPanel({
             onOrganizeSections={onOrganizeSections}
             organizingFileId={organizingFileId}
             onEditReference={onEditReference}
+            onRenameReference={onRenameReference}
             onImageCaption={onImageCaption}
             onPreviewImage={onPreviewImage}
             onDeleteFile={onDeleteFile}

@@ -19,7 +19,12 @@ import {
 } from "../utils/fileReader";
 import { createId, nowIso } from "../utils/id";
 import { hashText, parseMarkdownParagraphs } from "../utils/markdownParser";
-import { removeFileFromWorkspace, saveProjectStateToWorkspace } from "../utils/workspaceFs";
+import {
+  removeFileFromWorkspace,
+  renameFileInWorkspace,
+  sanitizeWorkspaceFileName,
+  saveProjectStateToWorkspace
+} from "../utils/workspaceFs";
 
 const folderTypes: FolderType[] = [
   "draftManuscripts",
@@ -27,6 +32,11 @@ const folderTypes: FolderType[] = [
   "optionalReferences",
   "draftImages"
 ];
+
+function fileExtension(name: string): string {
+  const dotIndex = name.lastIndexOf(".");
+  return dotIndex > 0 ? name.slice(dotIndex) : "";
+}
 
 const emptyFolders = (): ProjectFolders => ({
   draftManuscripts: [],
@@ -81,6 +91,12 @@ type StoreState = {
     fileId: string,
     meta: ReferencePaperMeta
   ) => void;
+  renameReferenceFile: (
+    projectId: string,
+    folderType: FolderType,
+    fileId: string,
+    nextName: string
+  ) => Promise<void>;
   updateImageCaption: (projectId: string, fileId: string, caption: string) => void;
   updateDraftParagraphStatus: (
     projectId: string,
@@ -408,6 +424,32 @@ export const useProjectStore = create<StoreState>((set, get) => {
           referenceMeta: meta,
           updatedAt: nowIso()
         }))
+      );
+    },
+
+    renameReferenceFile: async (projectId, folderType, fileId, nextName) => {
+      if (folderType !== "coreReferences" && folderType !== "optionalReferences") {
+        throw new Error("只有参考论文文件支持重命名。");
+      }
+
+      const project = get().projects.find((candidate) => candidate.id === projectId);
+      const file = project?.folders[folderType].find((candidate) => candidate.id === fileId);
+      if (!project || !file) {
+        throw new Error("未找到要重命名的参考论文。");
+      }
+
+      const renamedFile =
+        file.sourceType === "localHandle" || file.localPath
+          ? await renameFileInWorkspace(project, file, nextName)
+          : {
+              ...file,
+              name: sanitizeWorkspaceFileName(nextName, fileExtension(file.name)),
+              updatedAt: nowIso(),
+              lastSyncedAt: nowIso()
+            };
+
+      updateProject(projectId, (currentProject) =>
+        updateFileInProject(currentProject, folderType, fileId, () => renamedFile)
       );
     },
 

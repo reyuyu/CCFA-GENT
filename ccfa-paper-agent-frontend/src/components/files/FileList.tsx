@@ -1,6 +1,7 @@
 import {
   Eye,
   FileClock,
+  FilePenLine,
   FileText,
   Info,
   ListTree,
@@ -44,6 +45,7 @@ export function FileList({
   onOrganizeSections,
   organizingFileId,
   onEditReference,
+  onRenameReference,
   onImageCaption,
   onPreviewImage,
   onDeleteFile
@@ -57,6 +59,7 @@ export function FileList({
   onOrganizeSections: (folderType: FolderType, file: ProjectFile) => void;
   organizingFileId?: string;
   onEditReference: (folderType: FolderType, file: ProjectFile) => void;
+  onRenameReference: (folderType: FolderType, file: ProjectFile) => void;
   onImageCaption: (fileId: string, caption: string) => void;
   onPreviewImage: (file: ProjectFile) => void;
   onDeleteFile: (folderType: FolderType, file: ProjectFile) => void;
@@ -177,6 +180,14 @@ export function FileList({
               {isReference ? (
                 <FileAction icon={<Info className="h-3.5 w-3.5" />} onClick={() => onEditReference(folderType, file)}>
                   论文信息
+                </FileAction>
+              ) : null}
+              {isReference ? (
+                <FileAction
+                  icon={<FilePenLine className="h-3.5 w-3.5" />}
+                  onClick={() => onRenameReference(folderType, file)}
+                >
+                  重命名
                 </FileAction>
               ) : null}
               {canOrganizeSections ? (

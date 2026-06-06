@@ -30,6 +30,7 @@ const defaultExpandedFolders: Record<FolderType, boolean> = {
 
 export function ProjectSidebar({ project }: { project: PaperProject }) {
   const updateReferenceMeta = useProjectStore((state) => state.updateReferenceMeta);
+  const renameReferenceFile = useProjectStore((state) => state.renameReferenceFile);
   const updateImageCaption = useProjectStore((state) => state.updateImageCaption);
   const updateDraftParagraphStatus = useProjectStore((state) => state.updateDraftParagraphStatus);
   const deleteFile = useProjectStore((state) => state.deleteFile);
@@ -86,6 +87,17 @@ export function ProjectSidebar({ project }: { project: PaperProject }) {
     }
     if (imagePreview?.id === file.id) {
       setImagePreview(undefined);
+    }
+  };
+
+  const renameReference = async (targetFolder: FolderType, file: ProjectFile) => {
+    const nextName = window.prompt("请输入新的参考论文文件名：", file.name);
+    if (nextName === null || nextName.trim() === "" || nextName.trim() === file.name) return;
+
+    try {
+      await renameReferenceFile(project.id, targetFolder, file.id, nextName);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "重命名参考论文失败。");
     }
   };
 
@@ -171,6 +183,9 @@ export function ProjectSidebar({ project }: { project: PaperProject }) {
                 onEditReference={(targetFolder, file) =>
                   setReferenceTarget({ folderType: targetFolder, file })
                 }
+                onRenameReference={(targetFolder, file) => {
+                  void renameReference(targetFolder, file);
+                }}
                 onImageCaption={(fileId, caption) => updateImageCaption(project.id, fileId, caption)}
                 onPreviewImage={(file) => setImagePreview(file)}
                 onDeleteFile={removeFile}

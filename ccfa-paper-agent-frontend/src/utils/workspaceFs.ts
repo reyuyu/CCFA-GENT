@@ -411,6 +411,92 @@ export async function removeFileFromWorkspace(
   }
 }
 
+function fileExtension(name: string): string {
+  const dotIndex = name.lastIndexOf(".");
+  return dotIndex > 0 ? name.slice(dotIndex) : "";
+}
+
+export function sanitizeWorkspaceFileName(inputName: string, fallbackExtension = ""): string {
+  const trimmed = inputName.trim().replace(/\\/g, "/").split("/").filter(Boolean).pop() ?? "";
+  const cleaned = trimmed
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, "-")
+    .replace(/\s+/g, " ")
+    .replace(/-+/g, "-")
+    .replace(/^\.+/, "")
+    .trim();
+
+  if (!cleaned) {
+    throw new Error("文件名不能为空。");
+  }
+
+  const extension = fileExtension(cleaned);
+  return extension ? cleaned : `${cleaned}${fallbackExtension}`;
+}
+
+export async function renameFileInWorkspace(
+  project: PaperProject,
+  file: ProjectFile,
+  nextName: string
+): Promise<ProjectFile> {
+  const rootHandle = project.workspace?.rootDirectoryHandle;
+  const relativePath = file.localPath;
+  if (!rootHandle || !relativePath) {
+    throw new Error("当前文件没有绑定本地工程路径，无法同步重命名。");
+  }
+
+  const pathParts = relativePath.split("/").filter(Boolean);
+  if (pathParts.length < 2) {
+    throw new Error(`无效的工程文件路径：${relativePath}`);
+  }
+
+  const currentName = pathParts[pathParts.length - 1];
+  const fallbackExtension = fileExtension(currentName);
+  const safeName = sanitizeWorkspaceFileName(nextName, fallbackExtension);
+  if (safeName === currentName) {
+    return file;
+  }
+
+  let directoryHandle = rootHandle;
+  for (const folderName of pathParts.slice(0, -1)) {
+    directoryHandle = await directoryHandle.getDirectoryHandle(folderName);
+  }
+
+  const permitted = await ensureDirectoryWritePermission(rootHandle);
+  if (!permitted) {
+    throw new Error("没有写入工程目录的权限。");
+  }
+
+  try {
+    await directoryHandle.getFileHandle(safeName);
+    throw new Error(`同一目录下已存在文件：${safeName}`);
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("同一目录下已存在文件")) {
+      throw error;
+    }
+  }
+
+  const currentHandle = file.localHandle ?? (await getWorkspaceFileHandle(rootHandle, relativePath));
+  const currentFile = await currentHandle.getFile();
+  const nextHandle = await directoryHandle.getFileHandle(safeName, { create: true });
+  const writable = await nextHandle.createWritable();
+  await writable.write(currentFile);
+  await writable.close();
+  await directoryHandle.removeEntry(currentName);
+
+  const nextFile = await nextHandle.getFile();
+  return {
+    ...file,
+    name: safeName,
+    localPath: [...pathParts.slice(0, -1), safeName].join("/"),
+    localHandle: nextHandle,
+    size: nextFile.size,
+    mimeType: nextFile.type || file.mimeType,
+    diskLastModified: nextFile.lastModified,
+    updatedAt: nowIso(),
+    lastSyncedAt: nowIso()
+  };
+}
+
 export function describeWorkspace(project: PaperProject): string {
   return project.workspace?.relativePathLabel ?? "未绑定工程目录";
 }
