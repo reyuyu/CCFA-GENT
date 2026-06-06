@@ -110,14 +110,19 @@ Rules:
 
 LATEX_DRAFT_CLEAN_USER_PROMPT_TEMPLATE = """
 File name: {file_name}
+Chunk: {chunk_index} of {chunk_count}
 
-Clean this converted LaTeX Markdown draft. Return JSON only.
+Clean this converted LaTeX Markdown draft chunk. Return JSON only.
+Return only the cleaned content for this chunk, not the full paper.
 
 Markdown:
 ```markdown
 {markdown}
 ```
 """.strip()
+
+LATEX_CLEAN_TARGET_CHARS = 9000
+LATEX_CLEAN_MIN_SPLIT_CHARS = 1800
 
 
 def _is_fence_start(line: str) -> bool:
@@ -248,6 +253,59 @@ def _preclean_latex_markdown(markdown: str) -> str:
     cleaned = re.sub(r"\\includegraphics(?:\[[^\]]*])?\{[^{}]*\}\s*", "", cleaned)
     cleaned = re.sub(r"\\(?:begin|end)\{document\}\s*", "", cleaned)
     return cleaned
+
+
+def _split_large_text_unit(text: str, max_chars: int) -> list[str]:
+    paragraphs = re.split(r"(\n\s*\n)", text)
+    chunks: list[str] = []
+    current = ""
+
+    for part in paragraphs:
+        if len(current) + len(part) <= max_chars:
+            current += part
+            continue
+
+        if current.strip():
+            chunks.append(current)
+            current = ""
+
+        if len(part) <= max_chars:
+            current = part
+            continue
+
+        for index in range(0, len(part), max_chars):
+            chunks.append(part[index : index + max_chars])
+
+    if current.strip():
+        chunks.append(current)
+
+    return chunks
+
+
+def _split_markdown_for_latex_cleaning(markdown: str, max_chars: int = LATEX_CLEAN_TARGET_CHARS) -> list[str]:
+    units = _parse_markdown_units(markdown)
+    chunks: list[str] = []
+    current = ""
+
+    for unit in units:
+        text = unit.text
+        if len(text) > max_chars:
+            if current.strip():
+                chunks.append(current)
+                current = ""
+            chunks.extend(_split_large_text_unit(text, max_chars))
+            continue
+
+        if current and len(current) + len(text) > max_chars:
+            chunks.append(current)
+            current = text
+        else:
+            current += text
+
+    if current.strip():
+        chunks.append(current)
+
+    return chunks or [markdown]
 
 
 def _parse_heading_plan(text: str, valid_ids: set[int]) -> dict[int, str]:
@@ -408,6 +466,94 @@ async def organize_markdown_sections(
     )
 
 
+async def _request_latex_clean_chunk(
+    client: AsyncOpenAI,
+    settings: Settings,
+    file_name: str,
+    markdown: str,
+    chunk_index: int,
+    chunk_count: int,
+) -> tuple[str, str]:
+    messages = [
+        {"role": "system", "content": LATEX_DRAFT_CLEAN_SYSTEM_PROMPT},
+        {
+            "role": "user",
+            "content": LATEX_DRAFT_CLEAN_USER_PROMPT_TEMPLATE.format(
+                file_name=file_name,
+                chunk_index=chunk_index,
+                chunk_count=chunk_count,
+                markdown=markdown,
+            ),
+        },
+    ]
+
+    response = await client.chat.completions.create(
+        model=settings.deepseek_model,
+        temperature=0.1,
+        max_tokens=settings.markdown_section_organize_max_tokens,
+        messages=messages,
+    )
+    choice = response.choices[0] if response.choices else None
+    if getattr(choice, "finish_reason", None) == "length":
+        raise MarkdownOrganizeError("chunk_output_cut_off")
+
+    content = choice.message.content if choice and choice.message else ""
+    return _parse_cleaned_markdown_response(content or "")
+
+
+async def _clean_latex_chunk_with_retry(
+    client: AsyncOpenAI,
+    settings: Settings,
+    file_name: str,
+    markdown: str,
+    chunk_index: int,
+    chunk_count: int,
+) -> tuple[list[str], list[str]]:
+    try:
+        cleaned, summary = await _request_latex_clean_chunk(
+            client=client,
+            settings=settings,
+            file_name=file_name,
+            markdown=markdown,
+            chunk_index=chunk_index,
+            chunk_count=chunk_count,
+        )
+        return [cleaned], [summary]
+    except MarkdownOrganizeError as exc:
+        if str(exc) != "chunk_output_cut_off":
+            raise
+        if len(markdown) <= LATEX_CLEAN_MIN_SPLIT_CHARS:
+            raise MarkdownOrganizeError(
+                "The LaTeX draft cleaner output was cut off by the model token limit even after "
+                "splitting the document. The original Markdown was not changed."
+            ) from exc
+
+        midpoint = len(markdown) // 2
+        split_index = markdown.rfind("\n\n", 0, midpoint)
+        if split_index < LATEX_CLEAN_MIN_SPLIT_CHARS:
+            split_index = midpoint
+
+        left = markdown[:split_index].strip()
+        right = markdown[split_index:].strip()
+        cleaned_left, summaries_left = await _clean_latex_chunk_with_retry(
+            client=client,
+            settings=settings,
+            file_name=file_name,
+            markdown=left,
+            chunk_index=chunk_index,
+            chunk_count=chunk_count,
+        )
+        cleaned_right, summaries_right = await _clean_latex_chunk_with_retry(
+            client=client,
+            settings=settings,
+            file_name=file_name,
+            markdown=right,
+            chunk_index=chunk_index,
+            chunk_count=chunk_count,
+        )
+        return [*cleaned_left, *cleaned_right], [*summaries_left, *summaries_right]
+
+
 async def clean_latex_markdown_draft(
     request: OrganizeMarkdownRequest,
     settings: Settings,
@@ -426,33 +572,22 @@ async def clean_latex_markdown_draft(
         )
 
     client = AsyncOpenAI(api_key=settings.deepseek_api_key, base_url=settings.deepseek_base_url)
-    messages = [
-        {"role": "system", "content": LATEX_DRAFT_CLEAN_SYSTEM_PROMPT},
-        {
-            "role": "user",
-            "content": LATEX_DRAFT_CLEAN_USER_PROMPT_TEMPLATE.format(
-                file_name=request.fileName,
-                markdown=markdown,
-            ),
-        },
-    ]
+    chunks = _split_markdown_for_latex_cleaning(markdown)
 
     try:
-        response = await client.chat.completions.create(
-            model=settings.deepseek_model,
-            temperature=0.1,
-            max_tokens=settings.markdown_section_organize_max_tokens,
-            messages=messages,
-        )
-        choice = response.choices[0] if response.choices else None
-        if getattr(choice, "finish_reason", None) == "length":
-            raise MarkdownOrganizeError(
-                "The LaTeX draft cleaner output was cut off by the model token limit. "
-                "The original Markdown was not changed."
+        cleaned_chunks: list[str] = []
+        summaries: list[str] = []
+        for index, chunk in enumerate(chunks, start=1):
+            next_chunks, next_summaries = await _clean_latex_chunk_with_retry(
+                client=client,
+                settings=settings,
+                file_name=request.fileName,
+                markdown=chunk,
+                chunk_index=index,
+                chunk_count=len(chunks),
             )
-
-        content = choice.message.content if choice and choice.message else ""
-        organized_markdown, summary = _parse_cleaned_markdown_response(content or "")
+            cleaned_chunks.extend(next_chunks)
+            summaries.extend(next_summaries)
     except AuthenticationError as exc:
         raise MarkdownOrganizeError("DeepSeek authentication failed.") from exc
     except RateLimitError as exc:
@@ -462,6 +597,13 @@ async def clean_latex_markdown_draft(
     except APIError as exc:
         message = getattr(exc, "message", str(exc))
         raise MarkdownOrganizeError(f"DeepSeek API returned an error: {message}") from exc
+
+    organized_markdown = "\n\n".join(chunk.strip() for chunk in cleaned_chunks if chunk.strip()).strip() + "\n"
+    summary = (
+        f"智能解析完成：分 {len(chunks)} 个片段清理 LaTeX 转换稿，规整章节并移除无关 TeX 代码。"
+        if len(chunks) > 1
+        else (summaries[0] if summaries else "Cleaned converted LaTeX Markdown into a clearer draft structure.")
+    )
 
     return OrganizeMarkdownResponse(
         organizedMarkdown=organized_markdown,

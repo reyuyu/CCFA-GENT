@@ -1,19 +1,21 @@
-# 项目更新
+# 项目更新 / Project Updates
 
-这里记录 CCFA Paper Agent 的主要功能更新，方便本地用户和协作者快速了解最近新增了什么。
+记录主要功能变化。每条更新都包含中文和英文，尽量只保留最重要的信息。
+
+Major feature changes are listed here. Each entry includes Chinese and English, keeping only the essentials.
 
 ## 2026-06-06
 
-### 初稿支持上传 LaTeX 文件，并支持智能解析
+### 初稿 LaTeX 上传与智能解析 / LaTeX Draft Upload and Smart Parse
 
-本次更新为初步实现功能：
+**中文**
 
-- 初稿文档现在支持上传 `.tex` 文件。
-- 上传后的 LaTeX 初稿会自动转换为 `.latex.md` Markdown 文档。
-- 转换过程会尽量保留章节层次、公式信息和图表 caption。
-- 图片本体不会保留，figure / table caption 会作为文本保留。
-- 针对 `.latex.md` / `.tex.md` 初稿文件，新增“智能解析”按钮。
-- “智能解析”会进一步清理无关 TeX 代码、规整章节结构，并生成待确认修改。
-- 解析结果不会直接覆盖原文件，需要在前端 diff 审阅后手动确认应用。
+- 初稿支持上传 `.tex` 文件，并自动转换为 `.latex.md`。
+- 新增“智能解析”：清理无关 TeX 代码，规整章节层次，保留公式和 caption。
+- 智能解析改为分块处理，长文档不再因为模型输出长度限制直接失败。
 
-注意：当前版本仍是初步实现，复杂宏包、自定义命令和特殊 LaTeX 环境可能需要后续继续增强。
+**English**
+
+- Draft manuscripts can now upload `.tex` files and convert them to `.latex.md`.
+- Added **Smart Parse** to clean TeX artifacts, regularize sections, and preserve formulas/captions.
+- Smart Parse now processes long drafts in chunks to avoid model output length failures.
