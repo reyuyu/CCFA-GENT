@@ -8,6 +8,8 @@ import {
   FileText,
   FolderOpen,
   Plus,
+  Sparkles,
+  Wrench,
   Trash2
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
@@ -222,6 +224,40 @@ export function ProjectList() {
                   <CheckCircle2 className="h-4 w-4 text-sage-700" />
                   <span>参考论文、图片、段落进度统一管理</span>
                 </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="relative overflow-hidden rounded-xl border border-white/80 bg-[#253029] px-5 py-5 text-white shadow-panel sm:px-6">
+          <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_70%_45%,rgba(221,229,220,0.24),transparent_42%)]" />
+          <div className="relative grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-sm font-semibold text-[#dfe9dc]">
+                <Sparkles className="h-4 w-4" />
+                <span>当前使用说明</span>
+              </div>
+              <h2 className="mt-3 text-2xl font-semibold leading-snug text-white sm:text-3xl">
+                目前专注 Introduction 写作与检查
+              </h2>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-[#e8ece6]/86 sm:text-base">
+                本项目现阶段已经为 Introduction 部分的写作和检查配置了专有 skills。
+                Method、Experiment、Abstract 等其他模块的专项能力还在更新中；你也可以按自己的论文风格，
+                个性化编辑本地 skill，让 Agent 更懂你的写作偏好。
+              </p>
+            </div>
+            <div className="grid gap-2 text-sm">
+              <div className="flex items-center gap-3 rounded-lg border border-white/14 bg-white/10 px-3 py-2.5 backdrop-blur">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-[#cfe0ca]" />
+                <span>Introduction 写作 skill 已就绪</span>
+              </div>
+              <div className="flex items-center gap-3 rounded-lg border border-white/14 bg-white/10 px-3 py-2.5 backdrop-blur">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-[#cfe0ca]" />
+                <span>Introduction 检查 skill 已就绪</span>
+              </div>
+              <div className="flex items-center gap-3 rounded-lg border border-white/14 bg-white/10 px-3 py-2.5 backdrop-blur">
+                <Wrench className="h-4 w-4 shrink-0 text-[#d9c8a6]" />
+                <span>其他章节模块持续完善中</span>
               </div>
             </div>
           </div>
