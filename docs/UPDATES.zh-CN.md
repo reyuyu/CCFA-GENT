@@ -6,16 +6,18 @@ Major feature changes are listed here. Each entry includes Chinese and English, 
 
 ## 2026-06-06
 
-### 初稿 LaTeX 上传与智能解析 / LaTeX Draft Upload and Smart Parse
+### 初稿上传流程 / Draft Upload Flow
 
 **中文**
 
-- 初稿支持上传 `.tex` 文件，并自动转换为 `.latex.md`。
-- 新增“智能解析”：清理无关 TeX 代码，规整章节层次，保留公式和 caption。
-- 智能解析改为分块处理，长文档不再因为模型输出长度限制直接失败。
+- 初稿现在支持上传 `.md`、`.pdf` 和 `.tex` 文件。
+- 推荐：直接上传 `.md` 或 `.pdf` 初稿；PDF 初稿会通过 MinerU 解析为 Markdown。
+- 不建议：直接上传 `.tex`。TeX 转换只是兼容入口，解析效果可能不如意。
+- 初稿文档区只保留一个 Markdown 初稿；上传新初稿会替换旧初稿。
 
 **English**
 
-- Draft manuscripts can now upload `.tex` files and convert them to `.latex.md`.
-- Added **Smart Parse** to clean TeX artifacts, regularize sections, and preserve formulas/captions.
-- Smart Parse now processes long drafts in chunks to avoid model output length failures.
+- Draft manuscripts now support uploading `.md`, `.pdf`, and `.tex` files.
+- Recommended: upload draft manuscripts as `.md` or `.pdf`; PDF drafts are parsed into Markdown with MinerU.
+- Not recommended: upload `.tex` directly. TeX conversion is only a compatibility fallback, and the parsing result may be unsatisfactory.
+- The draft manuscript area keeps only one Markdown draft at a time. Uploading a new draft replaces the previous one.
