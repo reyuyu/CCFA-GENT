@@ -1,3 +1,4 @@
+import asyncio
 import json
 import re
 from dataclasses import dataclass
@@ -393,7 +394,7 @@ async def _request_heading_plan_batch(
     ]
 
     response = await client.chat.completions.create(
-        model=settings.latex_draft_clean_model or settings.deepseek_model,
+        model=settings.deepseek_model,
         temperature=0.1,
         max_tokens=settings.markdown_section_organize_max_tokens,
         messages=messages,
@@ -488,7 +489,7 @@ async def _request_latex_clean_chunk(
     ]
 
     response = await client.chat.completions.create(
-        model=settings.deepseek_model,
+        model=settings.latex_draft_clean_model or settings.deepseek_model,
         temperature=0.1,
         max_tokens=settings.markdown_section_organize_max_tokens,
         messages=messages,
@@ -575,17 +576,27 @@ async def clean_latex_markdown_draft(
     chunks = _split_markdown_for_latex_cleaning(markdown)
 
     try:
+        concurrency = max(1, min(settings.latex_draft_clean_concurrency, len(chunks)))
+        semaphore = asyncio.Semaphore(concurrency)
+
+        async def clean_chunk(index: int, chunk: str) -> tuple[list[str], list[str]]:
+            async with semaphore:
+                return await _clean_latex_chunk_with_retry(
+                    client=client,
+                    settings=settings,
+                    file_name=request.fileName,
+                    markdown=chunk,
+                    chunk_index=index,
+                    chunk_count=len(chunks),
+                )
+
+        chunk_results = await asyncio.gather(
+            *(clean_chunk(index, chunk) for index, chunk in enumerate(chunks, start=1))
+        )
+
         cleaned_chunks: list[str] = []
         summaries: list[str] = []
-        for index, chunk in enumerate(chunks, start=1):
-            next_chunks, next_summaries = await _clean_latex_chunk_with_retry(
-                client=client,
-                settings=settings,
-                file_name=request.fileName,
-                markdown=chunk,
-                chunk_index=index,
-                chunk_count=len(chunks),
-            )
+        for next_chunks, next_summaries in chunk_results:
             cleaned_chunks.extend(next_chunks)
             summaries.extend(next_summaries)
     except AuthenticationError as exc:

@@ -18,6 +18,10 @@ class Settings(BaseSettings):
         default="deepseek-v4-flash",
         alias="LATEX_DRAFT_CLEAN_MODEL",
     )
+    latex_draft_clean_concurrency: int = Field(
+        default=3,
+        alias="LATEX_DRAFT_CLEAN_CONCURRENCY",
+    )
     agent_memory_db_path: str = Field(
         default="data/agent_sessions.sqlite3",
         alias="AGENT_MEMORY_DB_PATH",
