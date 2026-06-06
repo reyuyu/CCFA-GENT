@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { Button } from "./Button";
 
@@ -23,7 +24,7 @@ export function Modal({
 }: ModalProps) {
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#2f2d2a]/45 px-4 py-6 backdrop-blur-sm animate-paper-fade-up">
       <div
         className={`max-h-[92vh] w-full ${widthClass} overflow-hidden rounded-xl border border-white/70 bg-paper-50 shadow-panel ring-1 ring-morandi-clay/40`}
@@ -44,6 +45,7 @@ export function Modal({
         </div>
         <div className={`max-h-[calc(92vh-72px)] overflow-y-auto ${bodyClassName}`}>{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

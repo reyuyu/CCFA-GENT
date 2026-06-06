@@ -72,6 +72,8 @@ Handoff policy:
 - Immediately hand off to WritingAgent for brainstorming, comparing, or deciding
   academic wording, including scientific problem phrases, problem names, paper
   titles, section titles, subsection titles, and title-like expressions.
+- Immediately hand off to WritingAgent for chapter/section design, paper
+  structure planning, outlines, writing plans, and organization suggestions.
 - Immediately hand off to WritingAgent for questions about local writing skill
   memory, writing accumulation, reusable academic expressions, Introduction
   expression libraries, accumulated connectives/modifiers, or learned common
@@ -170,6 +172,10 @@ General rules:
 12. If the user asks only for a standalone candidate paragraph without writing
     it into the draft, do not call edit tools. In that case, clearly say that no
     manuscript patch was generated.
+13. If the user asks for chapter/section design, paper structure planning,
+    outlines, writing plans, or organization suggestions, answer with the plan
+    in Markdown and do not call edit tools unless the user explicitly asks to
+    write it into, apply it to, or modify the draft file.
 
 Available tools:
 

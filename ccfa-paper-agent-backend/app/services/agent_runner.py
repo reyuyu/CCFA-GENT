@@ -301,6 +301,75 @@ TEXT_MANUSCRIPT_PATCH_TARGET_TERMS = (
     "paragraph",
 )
 
+TEXT_PLANNING_REQUEST_TERMS = (
+    "章节设计",
+    "章节规划",
+    "章节安排",
+    "章节结构",
+    "结构设计",
+    "结构规划",
+    "写作设计",
+    "写作规划",
+    "论文设计",
+    "论文结构",
+    "大纲",
+    "提纲",
+    "框架",
+    "方案",
+    "设计一下",
+    "规划一下",
+    "outline",
+    "section design",
+    "section plan",
+    "section outline",
+    "paper outline",
+    "paper structure",
+    "writing plan",
+    "writing outline",
+)
+
+TEXT_FILE_MUTATION_TERMS = (
+    "修改",
+    "改写",
+    "润色",
+    "重写",
+    "优化",
+    "编辑",
+    "写入",
+    "追加",
+    "添加",
+    "插入",
+    "扩写",
+    "续写",
+    "补充",
+    "加入",
+    "放入",
+    "填入",
+    "替换",
+    "更新",
+    "应用到",
+    "应用在",
+    "保存到",
+    "写回",
+    "落到",
+    "生成patch",
+    "生成 patch",
+    "rewrite",
+    "revise",
+    "polish",
+    "modify",
+    "edit",
+    "append",
+    "insert",
+    "add to",
+    "put into",
+    "apply to",
+    "save to",
+    "write into",
+    "write back",
+    "patch",
+)
+
 TEXT_NO_FILE_EDIT_TERMS = (
     "不要写入",
     "先不要写入",
@@ -392,8 +461,18 @@ def _is_check_only_request(message: str) -> bool:
     return bool(CHECK_REQUEST_PATTERN.search(message)) and not bool(EXPLICIT_FILE_EDIT_PATTERN.search(message))
 
 
+def _is_planning_only_request(message: str) -> bool:
+    if not _contains_any_text(message, TEXT_PLANNING_REQUEST_TERMS):
+        return False
+    if _contains_any_text(message, TEXT_NO_FILE_EDIT_TERMS):
+        return True
+    return not _contains_any_text(message, TEXT_FILE_MUTATION_TERMS)
+
+
 def _requires_file_change_patch(message: str) -> bool:
     if _is_check_only_request(message):
+        return False
+    if _is_planning_only_request(message):
         return False
     if not _is_edit_command(message):
         return False
@@ -617,7 +696,12 @@ async def run_paper_agent(request: AgentRequest, settings: Settings) -> AgentRes
         )
 
     is_check_only_request = _is_check_only_request(request.userMessage)
-    is_edit_command = _is_edit_command(request.userMessage) and not is_check_only_request
+    is_planning_only_request = _is_planning_only_request(request.userMessage)
+    is_edit_command = (
+        _is_edit_command(request.userMessage)
+        and not is_check_only_request
+        and not is_planning_only_request
+    )
     requires_file_change_patch = _requires_file_change_patch(request.userMessage)
     allow_non_manuscript_file_edit = _is_skill_resource_command(request.userMessage)
     required_tool_choice = is_edit_command and _supports_required_tool_choice(settings.deepseek_model)
@@ -693,7 +777,12 @@ async def run_paper_agent_stream(
         return
 
     is_check_only_request = _is_check_only_request(request.userMessage)
-    is_edit_command = _is_edit_command(request.userMessage) and not is_check_only_request
+    is_planning_only_request = _is_planning_only_request(request.userMessage)
+    is_edit_command = (
+        _is_edit_command(request.userMessage)
+        and not is_check_only_request
+        and not is_planning_only_request
+    )
     requires_file_change_patch = _requires_file_change_patch(request.userMessage)
     allow_non_manuscript_file_edit = _is_skill_resource_command(request.userMessage)
     required_tool_choice = is_edit_command and _supports_required_tool_choice(settings.deepseek_model)
