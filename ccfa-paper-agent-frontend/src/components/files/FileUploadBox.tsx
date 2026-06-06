@@ -34,6 +34,7 @@ export function FileUploadBox({
     state.projects.find((candidate) => candidate.id === projectId)
   );
   const uploadFileToFolder = useProjectStore((state) => state.uploadFileToFolder);
+  const deleteFile = useProjectStore((state) => state.deleteFile);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [statusText, setStatusText] = useState("");
@@ -41,13 +42,14 @@ export function FileUploadBox({
   const extensions = getAllowedExtensions(folderType);
 
   const createParsedMarkdownFile = (sourceName: string, markdown: string) => {
-    const markdownName = sourceName.replace(/\.pdf$/i, "") + ".mineru.md";
+    const suffix = folderType === "draftManuscripts" ? ".md" : ".mineru.md";
+    const markdownName = sourceName.replace(/\.pdf$/i, "") + suffix;
     return new File([markdown], markdownName, { type: "text/markdown" });
   };
 
   const createLatexMarkdownFile = async (file: File) => {
     const { markdown, stats } = convertLatexToMarkdown(await file.text(), file.name);
-    const markdownName = file.name.replace(/\.tex$/i, "") + ".latex.md";
+    const markdownName = file.name.replace(/\.tex$/i, "") + ".md";
     return {
       markdownFile: new File([markdown], markdownName, { type: "text/markdown" }),
       stats
@@ -99,6 +101,25 @@ export function FileUploadBox({
     );
   };
 
+  const stripDraftImageLinks = (markdown: string) =>
+    markdown
+      .replace(markdownImagePattern, "")
+      .replace(/<img\b[^>]*>\s*/gi, "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+
+  const clearExistingDraftFiles = () => {
+    if (folderType === "draftManuscripts") {
+      project?.folders.draftManuscripts.forEach((existingFile) => {
+        deleteFile(projectId, "draftManuscripts", existingFile.id);
+      });
+    }
+  };
+
+  const uploadProjectFile = (projectFile: Parameters<typeof uploadFileToFolder>[2]) => {
+    uploadFileToFolder(projectId, folderType, projectFile);
+  };
+
   return (
     <div>
       <button
@@ -113,7 +134,7 @@ export function FileUploadBox({
       <input
         ref={inputRef}
         type="file"
-        multiple
+        multiple={folderType !== "draftManuscripts"}
         className="hidden"
         accept={extensions.join(",")}
         onChange={async (event) => {
@@ -125,6 +146,10 @@ export function FileUploadBox({
           setBusy(true);
           setStatusText("");
           try {
+            if (folderType === "draftManuscripts" && files.length > 1) {
+              throw new Error("初稿文档只能保留一个 md 文件，请一次只上传一个 PDF、md 或 tex 文件。");
+            }
+
             for (const file of files) {
               const validationError = validateFileForFolder(file, folderType);
               if (validationError) {
@@ -133,7 +158,9 @@ export function FileUploadBox({
 
               const shouldParsePdf =
                 file.name.toLowerCase().endsWith(".pdf") &&
-                (folderType === "coreReferences" || folderType === "optionalReferences");
+                (folderType === "draftManuscripts" ||
+                  folderType === "coreReferences" ||
+                  folderType === "optionalReferences");
               const shouldConvertLatex =
                 file.name.toLowerCase().endsWith(".tex") && folderType === "draftManuscripts";
 
@@ -141,10 +168,15 @@ export function FileUploadBox({
                 setStatusText("正在调用 MinerU 解析 PDF...");
                 const parsed = await parsePdfWithMinerU(file);
                 const assetFolderName = createAssetFolderName(file.name);
-                const markdown = rewriteAssetLinks(parsed.markdown, assetFolderName);
+                const isDraftPdf = folderType === "draftManuscripts";
+                const markdown = isDraftPdf
+                  ? stripDraftImageLinks(parsed.markdown)
+                  : rewriteAssetLinks(parsed.markdown, assetFolderName);
 
-                setStatusText("正在保存图片资源...");
-                if (project?.workspace?.rootDirectoryHandle && parsed.assets.length > 0) {
+                if (!isDraftPdf) {
+                  setStatusText("正在保存图片资源...");
+                }
+                if (!isDraftPdf && project?.workspace?.rootDirectoryHandle && parsed.assets.length > 0) {
                   await saveAssetsIntoWorkspace(
                     project.workspace.rootDirectoryHandle,
                     folderType,
@@ -155,19 +187,20 @@ export function FileUploadBox({
 
                 setStatusText("正在保存 Markdown 文件...");
                 const markdownFile = createParsedMarkdownFile(file.name, markdown);
+                clearExistingDraftFiles();
                 const projectFile =
                   project?.workspace?.rootDirectoryHandle
                     ? await createProjectFileInWorkspace(project, markdownFile, folderType)
                     : await createProjectFile(markdownFile, folderType);
 
-                uploadFileToFolder(projectId, folderType, {
+                uploadProjectFile({
                   ...projectFile,
                   parsedMarkdownUrl: parsed.markdownUrl,
                   mineruTaskId: parsed.taskId,
                   parsedSections: parsed.sections,
                   parsedStats: parsed.stats,
-                  parsedImageAssets: parsed.assets,
-                  parsedAssetFolder: assetFolderName
+                  parsedImageAssets: isDraftPdf ? undefined : parsed.assets,
+                  parsedAssetFolder: isDraftPdf ? undefined : assetFolderName
                 });
                 continue;
               }
@@ -177,12 +210,13 @@ export function FileUploadBox({
                 const { markdownFile, stats } = await createLatexMarkdownFile(file);
 
                 setStatusText("正在写入工程目录...");
+                clearExistingDraftFiles();
                 const projectFile =
                   project?.workspace?.rootDirectoryHandle
                     ? await createProjectFileInWorkspace(project, markdownFile, folderType)
                     : await createProjectFile(markdownFile, folderType);
 
-                uploadFileToFolder(projectId, folderType, {
+                uploadProjectFile({
                   ...projectFile,
                   parsedStats: {
                     sectionCount: stats.headingCount,
@@ -195,11 +229,12 @@ export function FileUploadBox({
               }
 
               setStatusText("正在写入工程目录...");
+              clearExistingDraftFiles();
               const projectFile =
                 project?.workspace?.rootDirectoryHandle
                   ? await createProjectFileInWorkspace(project, file, folderType)
                   : await createProjectFile(file, folderType);
-              uploadFileToFolder(projectId, folderType, projectFile);
+              uploadProjectFile(projectFile);
             }
           } catch (errorValue) {
             setError(errorValue instanceof Error ? errorValue.message : "文件处理失败。");

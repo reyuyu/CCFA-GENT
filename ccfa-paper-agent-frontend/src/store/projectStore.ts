@@ -312,7 +312,10 @@ export const useProjectStore = create<StoreState>((set, get) => {
         ...project,
         folders: {
           ...project.folders,
-          [folderType]: [normalizeFile(file), ...project.folders[folderType]]
+          [folderType]:
+            folderType === "draftManuscripts"
+              ? [normalizeFile(file)]
+              : [normalizeFile(file), ...project.folders[folderType]]
         }
       }));
     },

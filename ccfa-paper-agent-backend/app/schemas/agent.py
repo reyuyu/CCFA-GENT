@@ -90,7 +90,6 @@ class LocalConfigResponse(BaseModel):
     deepseekApiKeyConfigured: bool
     deepseekBaseUrl: str
     deepseekModel: str
-    latexDraftCleanModel: str
     semanticScholarApiKeyConfigured: bool
     semanticScholarBaseUrl: str
     mineruApiTokenConfigured: bool

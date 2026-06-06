@@ -1,6 +1,6 @@
 import { Files, MessagesSquare } from "lucide-react";
 import { useState } from "react";
-import { cleanLatexDraftMarkdown, organizeMarkdownSections } from "../../agent/markdownOrganizerApi";
+import { organizeMarkdownSections } from "../../agent/markdownOrganizerApi";
 import { useProjectStore } from "../../store/projectStore";
 import type { FolderType, ProjectFile } from "../../types/file";
 import type { PaperProject } from "../../types/project";
@@ -55,7 +55,6 @@ export function ProjectSidebar({ project }: { project: PaperProject }) {
   const [imagePreview, setImagePreview] = useState<ProjectFile | undefined>();
   const [applyingChange, setApplyingChange] = useState(false);
   const [organizingFileId, setOrganizingFileId] = useState<string | undefined>();
-  const [smartParsingFileId, setSmartParsingFileId] = useState<string | undefined>();
   const [sidebarView, setSidebarView] = useState<"files" | "threads">("files");
 
   const currentMarkdownFile = markdownFile
@@ -181,28 +180,6 @@ export function ProjectSidebar({ project }: { project: PaperProject }) {
                     .finally(() => setOrganizingFileId(undefined));
                 }}
                 organizingFileId={organizingFileId}
-                onSmartParseDraft={(targetFolder, file) => {
-                  if (!file.contentText || smartParsingFileId) return;
-                  setSmartParsingFileId(file.id);
-                  void cleanLatexDraftMarkdown(file.name, file.contentText)
-                    .then((result) => {
-                      proposeFileChange(
-                        project.id,
-                        targetFolder,
-                        file.id,
-                        result.organizedMarkdown,
-                        result.summary ||
-                          "智能解析 LaTeX 转换稿：清理无关 TeX 代码并规整章节结构。",
-                        "agent"
-                      );
-                      setReviewTarget({ folderType: targetFolder, file });
-                    })
-                    .catch((error) => {
-                      window.alert(error instanceof Error ? error.message : "智能解析失败。");
-                    })
-                    .finally(() => setSmartParsingFileId(undefined));
-                }}
-                smartParsingFileId={smartParsingFileId}
                 onEditReference={(targetFolder, file) =>
                   setReferenceTarget({ folderType: targetFolder, file })
                 }

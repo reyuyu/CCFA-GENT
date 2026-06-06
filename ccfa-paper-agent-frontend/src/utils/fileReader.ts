@@ -5,7 +5,7 @@ import { createId, nowIso } from "./id";
 import { copyFileIntoWorkspace } from "./workspaceFs";
 
 const allowedExtensions: Record<FolderType, string[]> = {
-  draftManuscripts: [".md", ".tex"],
+  draftManuscripts: [".md", ".tex", ".pdf"],
   coreReferences: [".md", ".pdf"],
   optionalReferences: [".md", ".pdf"],
   draftImages: [".png", ".jpg", ".jpeg", ".webp"]

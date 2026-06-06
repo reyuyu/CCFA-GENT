@@ -16,8 +16,6 @@ export function FileFolderPanel({
   onRefreshFile,
   onOrganizeSections,
   organizingFileId,
-  onSmartParseDraft,
-  smartParsingFileId,
   onEditReference,
   onRenameReference,
   onImageCaption,
@@ -34,8 +32,6 @@ export function FileFolderPanel({
   onRefreshFile: (folderType: FolderType, file: ProjectFile) => void;
   onOrganizeSections: (folderType: FolderType, file: ProjectFile) => void;
   organizingFileId?: string;
-  onSmartParseDraft: (folderType: FolderType, file: ProjectFile) => void;
-  smartParsingFileId?: string;
   onEditReference: (folderType: FolderType, file: ProjectFile) => void;
   onRenameReference: (folderType: FolderType, file: ProjectFile) => void;
   onImageCaption: (fileId: string, caption: string) => void;
@@ -70,8 +66,6 @@ export function FileFolderPanel({
             onRefreshFile={onRefreshFile}
             onOrganizeSections={onOrganizeSections}
             organizingFileId={organizingFileId}
-            onSmartParseDraft={onSmartParseDraft}
-            smartParsingFileId={smartParsingFileId}
             onEditReference={onEditReference}
             onRenameReference={onRenameReference}
             onImageCaption={onImageCaption}

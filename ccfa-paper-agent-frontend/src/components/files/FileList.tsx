@@ -7,7 +7,6 @@ import {
   ListTree,
   Pencil,
   RefreshCw,
-  Sparkles,
   Trash2
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -45,8 +44,6 @@ export function FileList({
   onRefreshFile,
   onOrganizeSections,
   organizingFileId,
-  onSmartParseDraft,
-  smartParsingFileId,
   onEditReference,
   onRenameReference,
   onImageCaption,
@@ -61,8 +58,6 @@ export function FileList({
   onRefreshFile: (folderType: FolderType, file: ProjectFile) => void;
   onOrganizeSections: (folderType: FolderType, file: ProjectFile) => void;
   organizingFileId?: string;
-  onSmartParseDraft: (folderType: FolderType, file: ProjectFile) => void;
-  smartParsingFileId?: string;
   onEditReference: (folderType: FolderType, file: ProjectFile) => void;
   onRenameReference: (folderType: FolderType, file: ProjectFile) => void;
   onImageCaption: (fileId: string, caption: string) => void;
@@ -70,6 +65,13 @@ export function FileList({
   onDeleteFile: (folderType: FolderType, file: ProjectFile) => void;
 }) {
   if (files.length === 0) {
+    if (folderType === "draftManuscripts") {
+      return (
+        <p className="py-3 text-sm leading-6 text-morandi-muted">
+          虽然支持上传tex文档，但仍然建议用户直接上传PDF/md文件，tex解析效果可能不如意。
+        </p>
+      );
+    }
     return <p className="py-3 text-sm text-morandi-muted">暂无文件</p>;
   }
 
@@ -93,17 +95,12 @@ export function FileList({
     <div className="space-y-2.5 pt-3">
       {files.map((file) => {
         const isMarkdown = file.name.toLowerCase().endsWith(".md");
-        const isLatexMarkdown =
-          folderType === "draftManuscripts" &&
-          (file.name.toLowerCase().endsWith(".latex.md") ||
-            file.name.toLowerCase().endsWith(".tex.md") ||
-            file.contentText?.includes("Converted from"));
         const isPdf = file.name.toLowerCase().endsWith(".pdf");
         const isReference = folderType === "coreReferences" || folderType === "optionalReferences";
+        const isDraft = folderType === "draftManuscripts";
         const canPreviewMarkdown = isMarkdown || Boolean(file.contentText);
-        const canOrganizeSections = Boolean(file.contentText) && isReference;
+        const canOrganizeSections = Boolean(file.contentText) && (isReference || isDraft);
         const isOrganizing = organizingFileId === file.id;
-        const isSmartParsing = smartParsingFileId === file.id;
         const hasPendingChange = file.pendingChange?.status === "pending";
         const parseStatus = file.parseStatus ?? "none";
         const statusTone =
@@ -208,16 +205,6 @@ export function FileList({
                   onClick={() => onOrganizeSections(folderType, file)}
                 >
                   {isOrganizing ? "整理中" : "章节整理"}
-                </FileAction>
-              ) : null}
-              {isLatexMarkdown ? (
-                <FileAction
-                  variant="secondary"
-                  icon={<Sparkles className="h-3.5 w-3.5" />}
-                  disabled={isSmartParsing}
-                  onClick={() => onSmartParseDraft(folderType, file)}
-                >
-                  {isSmartParsing ? "解析中" : "智能解析"}
                 </FileAction>
               ) : null}
               {file.sourceType === "localHandle" ? (
