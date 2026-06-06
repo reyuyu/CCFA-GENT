@@ -76,9 +76,9 @@
 
 ### 环境要求
 
-- Python 3.10+
+- Python 3.10+；启动脚本会校验版本，并支持更新的 Python 3 版本
 - Node.js 20+
-- Chrome 或 Edge
+- Chrome 或 Edge；不建议使用 Safari，因为本地目录访问能力不完整
 - DeepSeek API Key
 
 ### Windows
@@ -109,6 +109,13 @@ powershell -ExecutionPolicy Bypass -File .\start-local.ps1
 chmod +x ./start-local.sh
 ./start-local.sh
 ```
+
+macOS 用户注意：
+
+- 脚本支持 Python 3.10 或更新版本。如果找不到 `python3.10`，只会在 `python3 >= 3.10` 时使用 `python3`。
+- 请使用 Chrome 或 Edge 打开本地工作台。Safari 可能无法稳定创建或打开工程目录，因为本项目依赖 File System Access API。
+- 首次使用请点击“创建论文工程”。“打开已有工程”只用于恢复之前创建过、且包含 `.agent/project-state.json` 的 CCFA Paper Agent 工程目录。
+- 如果配置面板出现 `Failed to fetch` 或无法连接后端，请先打开 `http://127.0.0.1:8000/health`，确认 `start-local.sh` 已成功启动后端。
 
 脚本会安装依赖、准备后端环境、启动 FastAPI 后端 `http://127.0.0.1:8000`、启动 Vite 前端 `http://127.0.0.1:5173`，并打开本地工作台。
 

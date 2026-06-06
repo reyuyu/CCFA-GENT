@@ -15,6 +15,25 @@ const folderTypes: FolderType[] = [
   "draftImages"
 ];
 
+function normalizeImportError(error: unknown): Error {
+  if (
+    error instanceof DOMException &&
+    (error.name === "NotFoundError" || error.message.includes("could not be found"))
+  ) {
+    return new Error(
+      "所选目录不是已保存的 CCFA Paper Agent 工程。请打开包含 .agent/project-state.json 的工程目录；首次使用请点击“创建论文工程”。"
+    );
+  }
+
+  if (error instanceof Error && error.message.includes("could not be found")) {
+    return new Error(
+      "所选目录不是已保存的 CCFA Paper Agent 工程。请打开包含 .agent/project-state.json 的工程目录；首次使用请点击“创建论文工程”。"
+    );
+  }
+
+  return error instanceof Error ? error : new Error("打开已有工程失败。");
+}
+
 async function restoreProjectFile(
   rootDirectoryHandle: FileSystemDirectoryHandle,
   file: ProjectFile
@@ -61,10 +80,14 @@ export async function importProjectFromWorkspace(): Promise<PaperProject> {
   }
 
   const rootDirectoryHandle = await window.showDirectoryPicker();
-  const [workspace, savedProject] = await Promise.all([
-    createWorkspaceFromExistingRoot(rootDirectoryHandle),
-    loadProjectStateFromWorkspace(rootDirectoryHandle)
-  ]);
+  let savedProject: PaperProject;
+  try {
+    savedProject = await loadProjectStateFromWorkspace(rootDirectoryHandle);
+  } catch (error) {
+    throw normalizeImportError(error);
+  }
+
+  const workspace = await createWorkspaceFromExistingRoot(rootDirectoryHandle);
 
   const restoredFolders = {
     ...savedProject.folders

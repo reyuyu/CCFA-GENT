@@ -17,10 +17,12 @@ find_python() {
     return
   fi
   if command -v python3 >/dev/null 2>&1; then
-    command -v python3
-    return
+    if python3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)' >/dev/null 2>&1; then
+      command -v python3
+      return
+    fi
   fi
-  echo "Python 3.10 or python3 is required." >&2
+  echo "Python 3.10 or newer is required." >&2
   exit 1
 }
 

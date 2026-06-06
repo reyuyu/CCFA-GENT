@@ -74,9 +74,9 @@ The literature discovery agent exposed through `retrieve_academic_papers`. It re
 
 ### Requirements
 
-- Python 3.10+
+- Python 3.10+; the startup scripts validate this and accept newer Python 3 versions
 - Node.js 20+
-- Chrome or Edge
+- Chrome or Edge; Safari is not recommended because local directory access is incomplete
 - DeepSeek API key
 
 ### Windows
@@ -107,6 +107,13 @@ Run from the repository root:
 chmod +x ./start-local.sh
 ./start-local.sh
 ```
+
+Notes for macOS users:
+
+- The script accepts Python 3.10 or newer. If `python3.10` is unavailable, it uses `python3` only when that interpreter is also `>= 3.10`.
+- Use Chrome or Edge for the local workspace. Safari may fail when creating or opening a project folder because this app depends on the File System Access API.
+- On first use, click **Create Paper Project**. **Open Existing Project** is only for a previously created CCFA Paper Agent project folder containing `.agent/project-state.json`.
+- If the configuration panel shows `Failed to fetch` or cannot connect to the backend, open `http://127.0.0.1:8000/health` and check whether `start-local.sh` completed successfully.
 
 The script installs dependencies, prepares the backend environment, starts FastAPI at `http://127.0.0.1:8000`, starts Vite at `http://127.0.0.1:5173`, and opens the local workspace.
 

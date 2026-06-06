@@ -36,8 +36,17 @@ async function parseConfigResponse(response: Response): Promise<LocalConfig> {
   return (await response.json()) as LocalConfig;
 }
 
+function createLocalBackendConnectionError(): Error {
+  const apiUrl = getAgentApiUrl();
+  return new Error(
+    `无法连接本地后端。请确认 start-local.ps1 或 start-local.sh 已成功运行，并能打开 ${apiUrl}/health。`
+  );
+}
+
 export async function fetchLocalConfig(): Promise<LocalConfig> {
-  const response = await fetch(`${getAgentApiUrl()}/api/local-config`);
+  const response = await fetch(`${getAgentApiUrl()}/api/local-config`).catch(() => {
+    throw createLocalBackendConnectionError();
+  });
   return parseConfigResponse(response);
 }
 
@@ -48,6 +57,8 @@ export async function saveLocalConfig(input: LocalConfigInput): Promise<LocalCon
       "Content-Type": "application/json"
     },
     body: JSON.stringify(input)
+  }).catch(() => {
+    throw createLocalBackendConnectionError();
   });
   return parseConfigResponse(response);
 }
@@ -55,6 +66,8 @@ export async function saveLocalConfig(input: LocalConfigInput): Promise<LocalCon
 export async function shutdownLocalServices(): Promise<LocalShutdownResult> {
   const response = await fetch(`${getAgentApiUrl()}/api/local-shutdown`, {
     method: "POST"
+  }).catch(() => {
+    throw createLocalBackendConnectionError();
   });
   if (!response.ok) {
     const message = await response.text().catch(() => "");
