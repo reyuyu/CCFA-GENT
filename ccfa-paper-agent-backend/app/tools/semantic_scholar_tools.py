@@ -13,9 +13,9 @@ from app.services.semantic_scholar import (
 
 
 @function_tool
-async def semantic_paper_search(query: str, limit: int = 10) -> dict[str, Any]:
-    """Search Semantic Scholar papers by query and return candidate papers with paperId."""
-    return await search_papers(query=query, limit=limit, settings=get_settings())
+async def semantic_paper_search(query: str, limit: int = 10, year: str = "") -> dict[str, Any]:
+    """Search Semantic Scholar papers by query, optionally filtering by publication year range."""
+    return await search_papers(query=query, limit=limit, year=year, settings=get_settings())
 
 
 @function_tool

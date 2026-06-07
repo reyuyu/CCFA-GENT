@@ -6,6 +6,20 @@ Major feature changes are listed here. Each entry includes Chinese and English, 
 
 ## 2026-06-07
 
+### 时间感知学术检索 / Time-Aware Academic Retrieval
+
+**中文**
+
+- 为学术检索 agent 新增本机时间工具，使其在检索前可以读取后端机器当前日期和年份。
+- 为 Semantic Scholar 搜索工具新增可选发表年份范围参数，例如 `2024-2026`。
+- 更新检索提示词，使“最新论文 / recent papers”类请求优先考虑当前年份和近几年论文，结果不足时再放宽年份范围。
+
+**English**
+
+- Added a local time tool for the academic retrieval agent so it can read the backend machine's current date and year before searching.
+- Updated the Semantic Scholar search tool to support an optional publication-year range, such as `2024-2026`.
+- Updated retrieval instructions so latest/recent-paper searches prioritize the current year and recent years, then relax the year range only when results are insufficient.
+
 ### Abstract、Method、Result 初步写作 Skill / Initial Writing Skills For Abstract, Method, And Result
 
 **中文**

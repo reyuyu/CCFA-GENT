@@ -102,7 +102,12 @@ async def _get_json(
         return response.json()
 
 
-async def search_papers(query: str, limit: int = 10, settings: Settings | None = None) -> dict[str, Any]:
+async def search_papers(
+    query: str,
+    limit: int = 10,
+    settings: Settings | None = None,
+    year: str = "",
+) -> dict[str, Any]:
     """Search Semantic Scholar papers by query."""
     if settings is None:
         raise ValueError("settings is required")
@@ -110,16 +115,21 @@ async def search_papers(query: str, limit: int = 10, settings: Settings | None =
     if not cleaned_query:
         return _error_payload("Semantic Scholar query is required.")
     safe_limit = _limit(limit, default=10, maximum=20)
+    cleaned_year = str(year or "").strip()
+    params: dict[str, Any] = {"query": cleaned_query, "limit": safe_limit, "fields": PAPER_FIELDS}
+    if cleaned_year:
+        params["year"] = cleaned_year
     try:
         data = await _get_json(
             "/paper/search",
-            {"query": cleaned_query, "limit": safe_limit, "fields": PAPER_FIELDS},
+            params,
             settings,
         )
         return {
             "ok": True,
             "strategy": "open_search",
             "query": cleaned_query,
+            "year": cleaned_year or None,
             "papers": [_normalize_paper(item) for item in data.get("data", [])],
             "total": data.get("total"),
         }

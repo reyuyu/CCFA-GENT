@@ -40,6 +40,7 @@ TOOL_PROGRESS_MESSAGES.update(
         "semantic_paper_search": "正在检索 Semantic Scholar 相关论文...",
         "semantic_paper_citation_search": "正在检索该论文的后续被引工作...",
         "semantic_paper_reference_search": "正在检索该论文的参考文献...",
+        "get_current_local_time": "正在获取本机当前时间...",
         "retrieve_academic_papers": "正在调用学术检索 Agent...",
     }
 )
