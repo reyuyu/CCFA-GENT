@@ -4,6 +4,26 @@ Major feature changes are listed here. Each entry includes English and Chinese, 
 
 这里记录主要功能变化。每条更新都包含英文和中文，尽量只保留最重要的信息。
 
+## 2026-06-07
+
+### Initial Writing Skills For Abstract, Method, And Result / Abstract、Method、Result 初步写作 Skill
+
+**English**
+
+- Added preliminary `writing-abstract-skill`, `writing-method-skill`, and `writing-result-skill` files.
+- The abstract skill establishes a first-pass workflow for the problem-gap-method-evidence-contribution chain, evidence grounding, compression, and claim-strength control.
+- The method skill establishes first-pass principles for technical faithfulness, innovation-aligned subsection headings, and `why-how-what` logic for each technical module.
+- The result skill establishes first-pass principles for evidence-grounded experiment writing, experiment-level conclusions, and alignment between each conclusion and the paper's academic thought.
+- These three module skills are initial versions only. They provide a basic writing framework and will be further optimized with concrete project cases, reference-paper accumulation, and real writing feedback.
+
+**中文**
+
+- 新增 `writing-abstract-skill`、`writing-method-skill` 和 `writing-result-skill` 三个初步版写作 skill。
+- Abstract skill 初步建立了 problem-gap-method-evidence-contribution 链条、证据支撑、摘要压缩和 claim 强度控制规则。
+- Method skill 初步建立了技术忠实性、技术小标题与创新点匹配、以及每个技术模块遵循 `why-how-what` 写作逻辑的规则。
+- Result skill 初步建立了基于证据的实验写作、每个实验形成明确结论、以及实验结论与论文学术思想匹配的规则。
+- 这三个模块 skill 目前只是初步版本，主要用于搭建基础写作框架，后续还会结合具体项目案例、参考文献写作积累和真实写作反馈继续优化。
+
 ## 2026-06-06
 
 ### Draft Upload Flow / 初稿上传流程
@@ -19,5 +39,5 @@ Major feature changes are listed here. Each entry includes English and Chinese, 
 
 - 初稿现在支持上传 `.md`、`.pdf` 和 `.tex` 文件。
 - 推荐：直接上传 `.md` 或 `.pdf` 初稿；PDF 初稿会通过 MinerU 解析为 Markdown。
-- 不建议：直接上传 `.tex`。TeX 转换只是兼容入口，解析效果可能不如意。
+- 不推荐：直接上传 `.tex`。TeX 转换只是兼容入口，解析结果可能不理想。
 - 初稿文档区只保留一个 Markdown 初稿；上传新初稿会替换旧初稿。
