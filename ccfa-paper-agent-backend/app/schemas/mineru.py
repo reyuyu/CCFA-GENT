@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -29,3 +29,13 @@ class MinerUParseResponse(BaseModel):
     assets: List[MinerUAsset] = Field(default_factory=list)
     sections: List[MinerUSection] = Field(default_factory=list)
     stats: MinerUMarkdownStats = Field(default_factory=MinerUMarkdownStats)
+
+
+class MinerUParsePdfUrlRequest(BaseModel):
+    pdfUrl: str
+    fileName: Optional[str] = None
+    language: str = "en"
+    pageRange: str = ""
+    enableTable: bool = True
+    isOcr: bool = False
+    enableFormula: bool = True

@@ -87,12 +87,37 @@ SEMANTIC_SCHOLAR_RETRIEVAL_INSTRUCTIONS = """
 - 如果没有找到足够新的论文，说明原因和下一步建议。
 """
 
+REFERENCE_READING_REQUEST_INSTRUCTIONS = """
+## Reference reading requests
+
+When a retrieved paper is especially valuable for the user's current task and
+has an accessible `openAccessPdf.url`, call `request_reference_paper_reading`.
+This queues a user-confirmed request card; it does not parse the PDF, does not
+add the paper to the local reference library, and must not delay the current
+answer.
+
+Only queue requests when all of these are true:
+- the paper is highly relevant to the user's writing, checking, or evidence gap;
+- the PDF URL is present and looks usable;
+- the paper is not already represented in local reference metadata;
+- you can explain what sections or evidence the paper may help with.
+
+Queue at most 1-3 papers per retrieval run. Prefer quality and direct usefulness
+over volume. Use `coreReferences` only for foundational or central papers that
+the current project likely needs repeatedly; otherwise use `optionalReferences`.
+
+In the final answer, tell the user that these are recommended reading requests
+and that accepting a request will parse the PDF with MinerU before adding it as
+a local reference. Do not claim you have read the full paper until the user
+accepts and the parsed Markdown is available locally.
+"""
+
 
 def create_semantic_scholar_retrieval_agent(settings: Settings) -> Agent:
     return Agent(
         name="SemanticScholarRetrievalAgent",
         handoff_description="Search and rank candidate academic papers using Semantic Scholar.",
-        instructions=SEMANTIC_SCHOLAR_RETRIEVAL_INSTRUCTIONS,
+        instructions=f"{SEMANTIC_SCHOLAR_RETRIEVAL_INSTRUCTIONS}\n{REFERENCE_READING_REQUEST_INSTRUCTIONS}",
         model=create_deepseek_model(settings),
         tools=[
             list_reference_papers,
@@ -108,7 +133,9 @@ def create_retrieve_academic_papers_tool(settings: Settings):
         tool_name="retrieve_academic_papers",
         tool_description=(
             "Search academic papers using Semantic Scholar when local references are insufficient. "
-            "Return candidate papers only; do not add them to the reference library."
+            "Return candidate papers only; do not add them to the reference library. "
+            "When a high-value result has an accessible PDF, queue a user-confirmed "
+            "reference reading request card for MinerU parsing."
         ),
         max_turns=16,
     )

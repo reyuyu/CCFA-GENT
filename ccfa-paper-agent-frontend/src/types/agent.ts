@@ -66,6 +66,26 @@ export type AgentContext = {
 export type AgentResponse = {
   content: string;
   patches?: AgentPatch[];
+  referenceRequests?: AgentReferenceRequest[];
+};
+
+export type AgentReferenceRequest = {
+  id: string;
+  title: string;
+  semanticScholarPaperId?: string;
+  year?: number;
+  venue?: string;
+  authors: string[];
+  citationCount?: number;
+  paperUrl?: string;
+  pdfUrl: string;
+  externalIds?: Record<string, unknown>;
+  relevanceReason: string;
+  whyUsefulForThisProject: string;
+  suggestedReferenceScope: "coreReferences" | "optionalReferences";
+  usefulForSections?: string[];
+  status: "pending" | "accepted" | "rejected" | "parsing" | "added" | "failed";
+  errorMessage?: string;
 };
 
 export type AgentProgressEvent = {

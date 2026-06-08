@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { buildAgentContext } from "../agent/agentAdapter";
 import { loadAppState, saveAppState } from "../storage/indexedDb";
-import type { AgentPatch } from "../types/agent";
+import type { AgentPatch, AgentReferenceRequest } from "../types/agent";
 import type { ChatMessage, ChatThread } from "../types/chat";
 import type {
   DraftParagraph,
@@ -110,6 +110,13 @@ type StoreState = {
   deleteThread: (projectId: string, threadId: string) => void;
   switchThread: (projectId: string, threadId: string) => void;
   appendMessage: (projectId: string, threadId: string, message: ChatMessage) => void;
+  updateMessageReferenceRequest: (
+    projectId: string,
+    threadId: string,
+    messageId: string,
+    requestId: string,
+    patch: Partial<AgentReferenceRequest>
+  ) => void;
   applyAgentPatch: (projectId: string, patch: AgentPatch) => void;
 };
 
@@ -528,6 +535,30 @@ export const useProjectStore = create<StoreState>((set, get) => {
                     ? message.content.slice(0, 28) || thread.title
                     : thread.title,
                 messages: [...thread.messages, message],
+                updatedAt: nowIso()
+              }
+            : thread
+        )
+      }));
+    },
+
+    updateMessageReferenceRequest: (projectId, threadId, messageId, requestId, patch) => {
+      updateProject(projectId, (project) => ({
+        ...project,
+        threads: project.threads.map((thread) =>
+          thread.id === threadId
+            ? {
+                ...thread,
+                messages: thread.messages.map((message) =>
+                  message.id === messageId
+                    ? {
+                        ...message,
+                        referenceRequests: message.referenceRequests?.map((request) =>
+                          request.id === requestId ? { ...request, ...patch } : request
+                        )
+                      }
+                    : message
+                ),
                 updatedAt: nowIso()
               }
             : thread

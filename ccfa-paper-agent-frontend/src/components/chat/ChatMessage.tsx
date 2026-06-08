@@ -1,16 +1,35 @@
 import {
+  BookOpen,
   ChevronDown,
   ChevronRight,
   CircleCheck,
   CircleDot,
+  ExternalLink,
+  FilePlus2,
+  Loader2,
   PenLine,
   Search,
-  Wrench
+  Wrench,
+  XCircle
 } from "lucide-react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { parsePdfUrlWithMinerU } from "../../agent/mineruApi";
+import { useProjectStore } from "../../store/projectStore";
+import type { AgentReferenceRequest } from "../../types/agent";
 import type { ChatMessage as ChatMessageType } from "../../types/chat";
+import type { PaperProject } from "../../types/project";
+import { createProjectFile, createProjectFileInWorkspace } from "../../utils/fileReader";
+import {
+  createMineruAssetFolderName,
+  createParsedMarkdownFile,
+  rewriteMineruAssetLinks
+} from "../../utils/mineruMarkdown";
+import { sanitizeFolderName, saveAssetsIntoWorkspace } from "../../utils/workspaceFs";
+import { Button } from "../ui/Button";
+
+type ReferenceFolderType = AgentReferenceRequest["suggestedReferenceScope"];
 
 function eventIcon(type: string) {
   if (type === "tool_start" || type === "retrieving") {
@@ -74,7 +93,173 @@ function AgentProcessTrace({ events }: { events: NonNullable<ChatMessageType["pr
   );
 }
 
-export function ChatMessage({ message }: { message: ChatMessageType }) {
+function requestPdfFileName(request: AgentReferenceRequest) {
+  const doi = typeof request.externalIds?.DOI === "string" ? request.externalIds.DOI : "";
+  const base = sanitizeFolderName(doi || request.title).slice(0, 96) || "retrieved-paper";
+  return `${base}.pdf`;
+}
+
+function statusLabel(status: AgentReferenceRequest["status"]) {
+  if (status === "parsing") return "Parsing";
+  if (status === "added") return "Added";
+  if (status === "rejected") return "Ignored";
+  if (status === "failed") return "Failed";
+  if (status === "accepted") return "Accepted";
+  return "Pending";
+}
+
+function ReferenceRequestList({
+  message,
+  project
+}: {
+  message: ChatMessageType;
+  project: PaperProject;
+}) {
+  const uploadFileToFolder = useProjectStore((state) => state.uploadFileToFolder);
+  const updateMessageReferenceRequest = useProjectStore((state) => state.updateMessageReferenceRequest);
+  const [busyRequestId, setBusyRequestId] = useState<string | null>(null);
+
+  const requests = message.referenceRequests ?? [];
+  if (!requests.length || !project.activeThreadId) return null;
+
+  const updateRequest = (requestId: string, patch: Partial<AgentReferenceRequest>) => {
+    updateMessageReferenceRequest(project.id, project.activeThreadId!, message.id, requestId, patch);
+  };
+
+  const addReference = async (request: AgentReferenceRequest, folderType: ReferenceFolderType) => {
+    setBusyRequestId(request.id);
+    updateRequest(request.id, { status: "parsing", errorMessage: undefined });
+    try {
+      const pdfFileName = requestPdfFileName(request);
+      const parsed = await parsePdfUrlWithMinerU(request.pdfUrl, pdfFileName);
+      const assetFolderName = createMineruAssetFolderName(pdfFileName);
+      const markdown = rewriteMineruAssetLinks(parsed.markdown, assetFolderName);
+
+      if (project.workspace?.rootDirectoryHandle && parsed.assets.length > 0) {
+        await saveAssetsIntoWorkspace(
+          project.workspace.rootDirectoryHandle,
+          folderType,
+          assetFolderName,
+          parsed.assets
+        );
+      }
+
+      const markdownFile = createParsedMarkdownFile(pdfFileName, markdown, folderType);
+      const projectFile = project.workspace?.rootDirectoryHandle
+        ? await createProjectFileInWorkspace(project, markdownFile, folderType)
+        : await createProjectFile(markdownFile, folderType);
+
+      uploadFileToFolder(project.id, folderType, {
+        ...projectFile,
+        parsedMarkdownUrl: parsed.markdownUrl,
+        mineruTaskId: parsed.taskId,
+        parsedSections: parsed.sections,
+        parsedStats: parsed.stats,
+        parsedImageAssets: parsed.assets,
+        parsedAssetFolder: assetFolderName,
+        referenceMeta: {
+          paperYear: request.year ? String(request.year) : "",
+          paperVenueOrQuality: request.venue ?? "",
+          semanticScholarPaperId: request.semanticScholarPaperId ?? "",
+          referenceSummary: request.whyUsefulForThisProject || request.relevanceReason,
+          referenceSections: request.usefulForSections?.join("; ") || "Queued by Agent for close reading."
+        }
+      });
+
+      updateRequest(request.id, { status: "added", suggestedReferenceScope: folderType });
+    } catch (error) {
+      updateRequest(request.id, {
+        status: "failed",
+        errorMessage: error instanceof Error ? error.message : "Failed to parse and add this PDF."
+      });
+    } finally {
+      setBusyRequestId(null);
+    }
+  };
+
+  return (
+    <div className="mt-4 border-t border-[#d6cbbf] pt-3">
+      <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.1em] text-[#66766f]">
+        <BookOpen className="h-3.5 w-3.5" />
+        Reference Reading Requests
+      </div>
+      <div className="space-y-2">
+        {requests.map((request) => {
+          const isBusy = busyRequestId === request.id || request.status === "parsing";
+          const isFinal = request.status === "added" || request.status === "rejected";
+          return (
+            <div key={request.id} className="rounded-md border border-[#c9c0b4] bg-white/42 p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#7a6b5d]">
+                    <span className="rounded bg-[#e0e8df] px-1.5 py-0.5 text-sage-700">
+                      {statusLabel(request.status)}
+                    </span>
+                    {request.year ? <span>{request.year}</span> : null}
+                    {request.venue ? <span>{request.venue}</span> : null}
+                    <span>{request.suggestedReferenceScope === "coreReferences" ? "Core" : "Optional"}</span>
+                  </div>
+                  <h4 className="mt-1 text-sm font-semibold leading-5 text-morandi-ink">
+                    {request.title}
+                  </h4>
+                  <p className="mt-1 line-clamp-2 text-xs leading-5 text-morandi-muted">
+                    {request.whyUsefulForThisProject || request.relevanceReason}
+                  </p>
+                  {request.errorMessage ? (
+                    <p className="mt-2 text-xs leading-5 text-red-700">{request.errorMessage}</p>
+                  ) : null}
+                </div>
+                {request.paperUrl ? (
+                  <a
+                    href={request.paperUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="shrink-0 rounded-md p-1.5 text-morandi-muted transition hover:bg-white/70 hover:text-morandi-ink"
+                    title="Open paper page"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                ) : null}
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  className="h-8"
+                  variant="primary"
+                  icon={isBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FilePlus2 className="h-3.5 w-3.5" />}
+                  disabled={isBusy || isFinal}
+                  onClick={() => void addReference(request, request.suggestedReferenceScope)}
+                >
+                  Add
+                </Button>
+                {request.suggestedReferenceScope !== "coreReferences" ? (
+                  <Button
+                    className="h-8"
+                    variant="secondary"
+                    disabled={isBusy || isFinal}
+                    onClick={() => void addReference(request, "coreReferences")}
+                  >
+                    Add as core
+                  </Button>
+                ) : null}
+                <Button
+                  className="h-8"
+                  variant="ghost"
+                  icon={<XCircle className="h-3.5 w-3.5" />}
+                  disabled={isBusy || isFinal}
+                  onClick={() => updateRequest(request.id, { status: "rejected" })}
+                >
+                  Ignore
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function ChatMessage({ message, project }: { message: ChatMessageType; project: PaperProject }) {
   const isUser = message.role === "user";
   const isSystem = message.role === "system";
 
@@ -98,6 +283,7 @@ export function ChatMessage({ message }: { message: ChatMessageType }) {
         <div className="prose-paper prose prose-sm max-w-none">
           <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
         </div>
+        {!isUser && !isSystem ? <ReferenceRequestList message={message} project={project} /> : null}
         {!isUser && !isSystem && message.progressEvents?.length ? (
           <AgentProcessTrace events={message.progressEvents} />
         ) : null}

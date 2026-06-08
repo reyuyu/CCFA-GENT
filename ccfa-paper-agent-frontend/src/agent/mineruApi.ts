@@ -77,3 +77,35 @@ export async function parsePdfWithMinerU(file: File): Promise<MinerUParseResult>
 
   return (await response.json()) as MinerUParseResult;
 }
+
+export async function parsePdfUrlWithMinerU(pdfUrl: string, fileName: string): Promise<MinerUParseResult> {
+  const apiUrl = getAgentApiUrl();
+  let response: Response;
+  try {
+    response = await fetch(`${apiUrl}/api/mineru/parse-pdf-url`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        pdfUrl,
+        fileName,
+        language: "en",
+        enableTable: true,
+        enableFormula: true,
+        isOcr: false
+      })
+    });
+  } catch (error) {
+    const diagnosis = await diagnoseBackendReachability(apiUrl);
+    const browserMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`PDF URL parse request failed before a response was received: ${browserMessage}\n\n${diagnosis}`);
+  }
+
+  if (!response.ok) {
+    const message = await readErrorMessage(response);
+    throw new Error(`PDF URL parse failed (HTTP ${response.status}): ${message}`);
+  }
+
+  return (await response.json()) as MinerUParseResult;
+}

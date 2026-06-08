@@ -509,6 +509,29 @@ def _looks_like_manual_patch_text(content: str) -> bool:
     return '"patches"' in content and '"proposeFileChange"' in content
 
 
+def _merge_reference_requests(
+    parsed_requests: Any,
+    generated_requests: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    merged: list[dict[str, Any]] = []
+    seen: set[str] = set()
+
+    for request in [
+        *(parsed_requests if isinstance(parsed_requests, list) else []),
+        *generated_requests,
+    ]:
+        if not isinstance(request, dict):
+            continue
+        key = str(request.get("semanticScholarPaperId") or request.get("pdfUrl") or "").strip()
+        if key and key in seen:
+            continue
+        if key:
+            seen.add(key)
+        merged.append(request)
+
+    return merged
+
+
 def _missing_edit_patch_response() -> AgentResponse:
     return AgentResponse(
         content=(
@@ -636,13 +659,23 @@ def _response_from_final_output(
             or _looks_like_manual_patch_text(raw_output)
         ):
             return _missing_edit_patch_response()
-        return AgentResponse(content=raw_output, patches=run_context.patches or None)
+        return AgentResponse(
+            content=raw_output,
+            patches=run_context.patches or None,
+            referenceRequests=run_context.reference_requests or None,
+        )
 
     has_manual_file_change_patch = _contains_manual_file_change_patch(parsed)
     if has_manual_file_change_patch and not _has_file_change_patch(run_context.patches):
         return _missing_edit_patch_response()
 
     parsed["patches"] = run_context.patches or []
+    reference_requests = _merge_reference_requests(
+        parsed.get("referenceRequests"),
+        run_context.reference_requests,
+    )
+    if reference_requests:
+        parsed["referenceRequests"] = reference_requests
 
     parsed_content = str(parsed.get("content") or "")
     if not allow_non_manuscript_file_edit and not _has_tool_generated_patch(parsed.get("patches")) and (

@@ -1,4 +1,4 @@
-import type { AgentProgressEvent } from "./agent";
+import type { AgentProgressEvent, AgentReferenceRequest } from "./agent";
 
 export type ChatRole = "user" | "assistant" | "system";
 
@@ -8,6 +8,7 @@ export type ChatMessage = {
   content: string;
   createdAt: string;
   progressEvents?: AgentProgressEvent[];
+  referenceRequests?: AgentReferenceRequest[];
 };
 
 export type ChatThread = {

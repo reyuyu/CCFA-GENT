@@ -182,7 +182,8 @@ export function ChatPanel({ project }: { project: PaperProject }) {
         role: "assistant",
         content: assistantContent,
         createdAt: nowIso(),
-        progressEvents: runProgressEvents
+        progressEvents: runProgressEvents,
+        referenceRequests: reply.referenceRequests
       });
 
       reply.patches?.forEach((patch) => applyAgentPatch(project.id, patch));
@@ -240,7 +241,9 @@ export function ChatPanel({ project }: { project: PaperProject }) {
         </Button>
       </div>
       <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
-        {activeThread?.messages.map((message) => <ChatMessage key={message.id} message={message} />)}
+        {activeThread?.messages.map((message) => (
+          <ChatMessage key={message.id} message={message} project={project} />
+        ))}
         {loading ? <AgentProgressCard events={progressEvents} /> : null}
       </div>
       <ChatComposer disabled={loading || !activeThread} onSend={handleSend} />

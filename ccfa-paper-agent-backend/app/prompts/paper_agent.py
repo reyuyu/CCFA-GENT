@@ -5,7 +5,8 @@ JSON_RESPONSE_CONTRACT = """
 Return only valid JSON:
 {
   "content": "Markdown assistant message",
-  "patches": []
+  "patches": [],
+  "referenceRequests": []
 }
 
 The "patches" field may be omitted or empty. Supported patch types:
@@ -19,6 +20,12 @@ The "patches" field may be omitted or empty. Supported patch types:
 Do not manually write patch objects in the final JSON. If an edit is needed,
 call the appropriate edit tool and leave "patches" omitted or empty; the backend
 will attach tool-generated patches.
+
+The "referenceRequests" field may be omitted or empty. When the retrieval agent
+queued requests to read high-value retrieved PDFs, preserve those requests in the
+final response. These requests are user-confirmed suggestions only; never treat a
+requested PDF as a local reference until the user accepts and MinerU parsing
+adds it to the reference library.
 """
 
 
@@ -96,6 +103,17 @@ Context rules:
 - For academic paper discovery, use retrieve_academic_papers to call the
   SemanticScholarRetrievalAgent. Retrieval results are candidate recommendations
   only; never automatically add them to the local reference library.
+- If retrieval finds a highly relevant paper with an accessible PDF, the
+  retrieval agent may queue a reference reading request. Mention that the user
+  can accept the request card to parse the PDF with MinerU and add it as a local
+  reference; do not delay the current answer while waiting for that parsing.
+- If the user asks to add, include, save, import, or put a specific retrieved
+  paper into the reference library, do not say you lack permission to add
+  references. If a usable PDF URL is known, call `request_reference_paper_reading`
+  to create a user-confirmed request card. If the PDF URL is not known yet, call
+  `retrieve_academic_papers` first and then queue the request when an accessible
+  PDF is found. The current answer should continue normally while the card waits
+  for user confirmation.
 
 {MANAGER_RESPONSE_CONTRACT}
 """
@@ -186,6 +204,7 @@ Available tools:
 * Scientific problem memory tools: `get_scientific_problem_memory`, `edit_scientific_problem_memory`
 * Edit tools: `edit_draft`, `edit_draft_section`, `edit_draft_paragraph_content`, `edit_draft_paragraph_status`, `edit_project_status`
 * Retrieval tool: `retrieve_academic_papers`
+* Reference request tool: `request_reference_paper_reading`
 
 Reply in the user's language unless they ask for English only.
 For manuscript text, always use academic English.
@@ -241,6 +260,7 @@ Available tools:
 * Scientific problem memory tools: `get_scientific_problem_memory`, `edit_scientific_problem_memory`
 * Edit tools: `edit_draft`, `edit_draft_section`, `edit_draft_paragraph_content`, `edit_draft_paragraph_status`, `edit_project_status`
 * Retrieval tool: `retrieve_academic_papers`
+* Reference request tool: `request_reference_paper_reading`
 
 Registered checking skills:
 {build_checking_skill_registry_text()}

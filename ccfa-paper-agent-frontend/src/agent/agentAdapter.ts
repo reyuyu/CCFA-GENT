@@ -2,6 +2,7 @@ import type {
   AgentContext,
   AgentPatch,
   AgentProgressEvent,
+  AgentReferenceRequest,
   AgentResponse,
   AgentStreamEvent
 } from "../types/agent";
@@ -27,6 +28,29 @@ function isSupportedAgentPatch(patch: AgentPatch): patch is AgentPatch {
     patch.type === "updateIntroductionOutline" ||
     patch.type === "updateScientificProblemMemory"
   );
+}
+
+function isReferenceRequest(request: unknown): request is AgentReferenceRequest {
+  if (!request || typeof request !== "object") return false;
+  const candidate = request as Partial<AgentReferenceRequest>;
+  return Boolean(
+    candidate.id &&
+      candidate.title &&
+      candidate.pdfUrl &&
+      (candidate.suggestedReferenceScope === "coreReferences" ||
+        candidate.suggestedReferenceScope === "optionalReferences")
+  );
+}
+
+function normalizeReferenceRequests(requests: unknown): AgentReferenceRequest[] | undefined {
+  if (!Array.isArray(requests)) return undefined;
+  const normalized = requests.filter(isReferenceRequest).map((request) => ({
+    ...request,
+    authors: Array.isArray(request.authors) ? request.authors : [],
+    usefulForSections: Array.isArray(request.usefulForSections) ? request.usefulForSections : [],
+    status: request.status ?? "pending"
+  }));
+  return normalized.length ? normalized : undefined;
 }
 
 export function buildAgentContext(project: PaperProject): AgentContext {
@@ -129,7 +153,8 @@ export async function sendMessageToAgent(
   const data = (await response.json()) as AgentResponse;
   return {
     content: data.content,
-    patches: data.patches?.filter(isSupportedAgentPatch)
+    patches: data.patches?.filter(isSupportedAgentPatch),
+    referenceRequests: normalizeReferenceRequests(data.referenceRequests)
   };
 }
 
@@ -140,7 +165,8 @@ type AgentStreamHandlers = {
 function normalizeAgentResponse(data: AgentResponse): AgentResponse {
   return {
     content: data.content,
-    patches: data.patches?.filter(isSupportedAgentPatch)
+    patches: data.patches?.filter(isSupportedAgentPatch),
+    referenceRequests: normalizeReferenceRequests(data.referenceRequests)
   };
 }
 

@@ -4,6 +4,26 @@
 
 Major feature changes are listed here. Each entry includes Chinese and English, keeping only the essentials.
 
+## 2026-06-08
+
+### 检索论文精读请求 / Retrieval Reading Requests
+
+**中文**
+
+- 为 Agent 响应新增 `referenceRequests`，使高价值且有可访问 PDF 的检索论文可以变成用户确认的精读请求卡片。
+- 为主控、写作、检查和检索 Agent 增加 `request_reference_paper_reading` 工具；当用户要求添加检索论文时，不再只回答“没有权限”。
+- 新增 `/api/mineru/parse-pdf-url`，由后端下载 PDF URL、校验资源、调用 MinerU 解析，并返回 Markdown 和图片资产。
+- 前端新增精读请求卡片，支持 `Add`、`Add as core` 和 `Ignore`；用户确认后加入核心或可选参考论文。
+- 更新检索提示词，明确精读请求不阻塞当前回答，且 PDF 未解析成本地 Markdown 前不能作为已读证据。
+
+**English**
+
+- Added `referenceRequests` to Agent responses so high-value retrieved papers with accessible PDFs can become user-confirmed reading request cards.
+- Added `request_reference_paper_reading` for the manager, writing, checking, and retrieval agents; agents no longer need to say they lack permission when the user asks to add a retrieved paper.
+- Added `/api/mineru/parse-pdf-url`, allowing the backend to download a PDF URL, validate it, parse it with MinerU, and return Markdown plus assets.
+- Added frontend request cards with `Add`, `Add as core`, and `Ignore`; accepted requests are parsed and added to `coreReferences` or `optionalReferences`.
+- Updated retrieval prompts so queued requests do not block the current answer and are not treated as read evidence until the PDF is parsed locally.
+
 ## 2026-06-07
 
 ### 时间感知学术检索 / Time-Aware Academic Retrieval

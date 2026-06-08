@@ -46,6 +46,24 @@ class UpdateScientificProblemMemoryPatch(BaseModel):
     payload: dict[str, Any] = Field(default_factory=dict)
 
 
+class AgentReferenceRequest(BaseModel):
+    id: str
+    title: str
+    semanticScholarPaperId: str = ""
+    year: Optional[int] = None
+    venue: str = ""
+    authors: List[str] = Field(default_factory=list)
+    citationCount: Optional[int] = None
+    paperUrl: str = ""
+    pdfUrl: str
+    externalIds: dict[str, Any] = Field(default_factory=dict)
+    relevanceReason: str
+    whyUsefulForThisProject: str
+    suggestedReferenceScope: Literal["coreReferences", "optionalReferences"] = "optionalReferences"
+    usefulForSections: List[str] = Field(default_factory=list)
+    status: Literal["pending", "accepted", "rejected", "parsing", "added", "failed"] = "pending"
+
+
 AgentPatch = Union[
     UpdateProjectMetaPatch,
     ProposeFileChangePatch,
@@ -59,6 +77,7 @@ AgentPatch = Union[
 class AgentResponse(BaseModel):
     content: str
     patches: Optional[List[AgentPatch]] = None
+    referenceRequests: Optional[List[AgentReferenceRequest]] = None
 
 
 class HealthResponse(BaseModel):
