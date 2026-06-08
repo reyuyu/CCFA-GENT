@@ -172,15 +172,10 @@ export function ChatPanel({ project }: { project: PaperProject }) {
       const hasFileChangePatch = Boolean(
         reply.patches?.some((patch) => patch.type === "proposeFileChange")
       );
-      const assistantContent =
-        !hasFileChangePatch && claimsFileChange(reply.content)
-          ? "没有收到后端返回的真实文件修改 patch，所以初稿没有被改动，也不会出现“查看修改/确认应用”。"
-          : reply.content;
-
       appendMessage(project.id, thread.id, {
         id: createId("msg"),
         role: "assistant",
-        content: assistantContent,
+        content: reply.content,
         createdAt: nowIso(),
         progressEvents: runProgressEvents,
         referenceRequests: reply.referenceRequests
@@ -201,7 +196,7 @@ export function ChatPanel({ project }: { project: PaperProject }) {
           id: createId("msg"),
           role: "system",
           content:
-            "本次没有返回文件修改 patch，所以不会出现“查看修改/确认应用”。如果回复声称已经修改，前端会将其拦截。",
+            "本次没有返回文件修改 patch，所以不会出现“查看修改/确认应用”，初稿文件也不会被自动改动。上方 Agent 回复已原样保留。",
           createdAt: nowIso()
         });
       }

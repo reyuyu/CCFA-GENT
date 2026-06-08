@@ -303,6 +303,18 @@ TEXT_MANUSCRIPT_PATCH_TARGET_TERMS = (
 )
 
 TEXT_PLANNING_REQUEST_TERMS = (
+    "\u601d\u8def",
+    "\u5199\u4f5c\u601d\u8def",
+    "\u540e\u7eed\u601d\u8def",
+    "\u7406\u6e05",
+    "\u68b3\u7406",
+    "\u6784\u601d",
+    "\u60f3\u4e00\u4e0b",
+    "\u5148\u60f3",
+    "\u5148\u7406",
+    "\u540e\u9762\u600e\u4e48\u5199",
+    "\u63a5\u4e0b\u6765\u600e\u4e48\u5199",
+    "\u540e\u7eed\u600e\u4e48\u5199",
     "章节设计",
     "章节规划",
     "章节安排",
@@ -327,6 +339,27 @@ TEXT_PLANNING_REQUEST_TERMS = (
     "paper structure",
     "writing plan",
     "writing outline",
+)
+
+TEXT_STRONG_FILE_MUTATION_TERMS = (
+    "\u5199\u5165",
+    "\u5199\u56de",
+    "\u4fee\u6539\u521d\u7a3f",
+    "\u6539\u5199\u521d\u7a3f",
+    "\u6da6\u8272\u521d\u7a3f",
+    "\u66ff\u6362",
+    "\u5e94\u7528\u5230",
+    "\u5e94\u7528\u5728",
+    "\u4fdd\u5b58\u5230",
+    "\u843d\u5230",
+    "\u751f\u6210patch",
+    "\u751f\u6210 patch",
+    "write into",
+    "write back",
+    "apply to",
+    "save to",
+    "replace",
+    "patch",
 )
 
 TEXT_FILE_MUTATION_TERMS = (
@@ -467,6 +500,8 @@ def _is_planning_only_request(message: str) -> bool:
         return False
     if _contains_any_text(message, TEXT_NO_FILE_EDIT_TERMS):
         return True
+    if not _contains_any_text(message, TEXT_STRONG_FILE_MUTATION_TERMS):
+        return True
     return not _contains_any_text(message, TEXT_FILE_MUTATION_TERMS)
 
 
@@ -532,21 +567,16 @@ def _merge_reference_requests(
     return merged
 
 
-def _missing_edit_patch_response() -> AgentResponse:
-    return AgentResponse(
-        content=(
-            "我没有生成真正的 `proposeFileChange` patch，所以前端不会出现"
-            "“查看修改/确认应用”，初稿文件也不会被改动。请重新发起一次编辑请求，"
-            "例如：“请把这段追加到 Introduction 后面”或“请修改 Introduction 第 2 段”。"
-        )
+def _missing_edit_patch_response(original_content: str = "") -> AgentResponse:
+    warning = (
+        "安全提醒：本次没有生成真正的 `proposeFileChange` patch，所以前端不会出现"
+        "“查看修改/确认应用”，初稿文件也没有被改动。"
+        "如果你希望真正写入初稿，请明确说明“写入/修改/替换 Introduction 第 X 段”。"
     )
-    return AgentResponse(
-        content=(
-            "我没有生成真正的 `proposeFileChange` patch，所以前端不会出现“查看修改/确认应用”，"
-            "初稿文件也没有被改动。请指定要修改的章节或段落，例如："
-            "“请修改初稿的 Introduction 章节”或“请润色第 3 段”。"
-        )
-    )
+    cleaned_content = original_content.strip()
+    if cleaned_content:
+        return AgentResponse(content=f"{cleaned_content}\n\n---\n\n{warning}")
+    return AgentResponse(content=warning)
 
 
 def _now_iso() -> str:
@@ -658,7 +688,7 @@ def _response_from_final_output(
             or _claims_manuscript_file_change(raw_output)
             or _looks_like_manual_patch_text(raw_output)
         ):
-            return _missing_edit_patch_response()
+            return _missing_edit_patch_response(raw_output)
         return AgentResponse(
             content=raw_output,
             patches=run_context.patches or None,
@@ -667,7 +697,7 @@ def _response_from_final_output(
 
     has_manual_file_change_patch = _contains_manual_file_change_patch(parsed)
     if has_manual_file_change_patch and not _has_file_change_patch(run_context.patches):
-        return _missing_edit_patch_response()
+        return _missing_edit_patch_response(str(parsed.get("content") or raw_output))
 
     parsed["patches"] = run_context.patches or []
     reference_requests = _merge_reference_requests(
@@ -683,7 +713,7 @@ def _response_from_final_output(
         or _claims_manuscript_file_change(parsed_content)
         or has_manual_file_change_patch
     ):
-        return _missing_edit_patch_response()
+        return _missing_edit_patch_response(parsed_content or raw_output)
 
     try:
         return AgentResponse(**parsed)
