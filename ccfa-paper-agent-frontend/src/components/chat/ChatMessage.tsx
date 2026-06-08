@@ -1,4 +1,5 @@
 import {
+  ArrowRightLeft,
   BookOpen,
   ChevronDown,
   ChevronRight,
@@ -13,6 +14,7 @@ import {
   XCircle
 } from "lucide-react";
 import { useState } from "react";
+import clsx from "clsx";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { parsePdfUrlWithMinerU } from "../../agent/mineruApi";
@@ -48,6 +50,39 @@ function eventIcon(type: string) {
   return <CircleDot className="mt-0.5 h-3.5 w-3.5 text-[#8b7968]" />;
 }
 
+function eventDataText(event: NonNullable<ChatMessageType["progressEvents"]>[number], key: string) {
+  const value = event.data?.[key];
+  return typeof value === "string" ? value : "";
+}
+
+function isHandoffEvent(event: NonNullable<ChatMessageType["progressEvents"]>[number]) {
+  return eventDataText(event, "phase") === "agent_handoff";
+}
+
+function processEventIcon(event: NonNullable<ChatMessageType["progressEvents"]>[number]) {
+  if (isHandoffEvent(event)) {
+    return <ArrowRightLeft className="mt-0.5 h-3.5 w-3.5 text-[#8a681c]" />;
+  }
+  return eventIcon(event.type);
+}
+
+function eventStageLabel(event: NonNullable<ChatMessageType["progressEvents"]>[number]) {
+  if (isHandoffEvent(event)) return "Agent 交接";
+  if (event.type === "tool_start") return "调用工具";
+  if (event.type === "tool_end") return "工具结果";
+  if (event.type === "retrieving") return "检索";
+  if (event.type === "writing") return eventDataText(event, "toolName") ? "写作工具" : "生成回答";
+  if (event.type === "done") return "完成";
+  if (event.type === "error") return "错误";
+  return "思考";
+}
+
+function eventStageClass(event: NonNullable<ChatMessageType["progressEvents"]>[number]) {
+  return isHandoffEvent(event)
+    ? "bg-[#efe3bd] text-[#7a5a18] ring-1 ring-[#d7b75d]/45"
+    : "bg-[#e5ebe5] text-sage-700";
+}
+
 function AgentProcessTrace({ events }: { events: NonNullable<ChatMessageType["progressEvents"]> }) {
   const [open, setOpen] = useState(false);
   if (!events.length) return null;
@@ -78,8 +113,30 @@ function AgentProcessTrace({ events }: { events: NonNullable<ChatMessageType["pr
               </span>
               <div className="min-w-0">
                 <div className="flex items-start gap-1.5 text-morandi-muted">
-                  {eventIcon(event.type)}
-                  <span className="leading-5">{event.message}</span>
+                  {processEventIcon(event)}
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span
+                        className={clsx(
+                          "rounded px-1.5 py-0.5 text-[10px] font-medium",
+                          eventStageClass(event)
+                        )}
+                      >
+                        {eventStageLabel(event)}
+                      </span>
+                      <span className="leading-5">{event.message}</span>
+                    </div>
+                    {eventDataText(event, "toolDescription") || eventDataText(event, "handoffDescription") ? (
+                      <p className="mt-1 leading-5 text-morandi-muted">
+                        {eventDataText(event, "handoffDescription") || eventDataText(event, "toolDescription")}
+                      </p>
+                    ) : null}
+                    {eventDataText(event, "toolName") ? (
+                      <span className="mt-1 inline-flex rounded bg-[#e4ded4] px-1.5 py-0.5 text-[10px] font-medium text-[#716355]">
+                        {eventDataText(event, "toolName")}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
                 <div className="mt-0.5 text-[10px] uppercase tracking-[0.08em] text-[#9a8d7f]">
                   {event.type} · {new Date(event.createdAt).toLocaleTimeString()}

@@ -8,6 +8,7 @@ class AgentRequest(BaseModel):
     threadId: str
     userMessage: str
     context: dict[str, Any]
+    model: Optional[str] = None
 
 
 class UpdateProjectMetaPatch(BaseModel):

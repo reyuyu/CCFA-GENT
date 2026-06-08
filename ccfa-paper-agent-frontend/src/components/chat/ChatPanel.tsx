@@ -1,6 +1,7 @@
 import {
   Activity,
   AlertTriangle,
+  ArrowRightLeft,
   Bot,
   Braces,
   CheckCircle2,
@@ -10,6 +11,7 @@ import {
   Wrench
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import clsx from "clsx";
 import { buildAgentContext, sendMessageToAgentStream } from "../../agent/agentAdapter";
 import { useProjectStore } from "../../store/projectStore";
 import type { AgentProgressEvent } from "../../types/agent";
@@ -18,7 +20,7 @@ import type { PaperProject } from "../../types/project";
 import { createId, nowIso } from "../../utils/id";
 import { Button } from "../ui/Button";
 import { AgentContextDrawer } from "./AgentContextDrawer";
-import { ChatComposer } from "./ChatComposer";
+import { ChatComposer, CHAT_MODEL_OPTIONS, DEFAULT_CHAT_MODEL } from "./ChatComposer";
 import { ChatMessage } from "./ChatMessage";
 
 const editKeywordPattern =
@@ -41,12 +43,52 @@ function claimsFileChange(content: string) {
   return claimedFileChangePattern.test(content);
 }
 
+function normalizeChatModel(model: string | null | undefined) {
+  const candidate = (model ?? "").trim();
+  return CHAT_MODEL_OPTIONS.some((option) => option.value === candidate)
+    ? candidate
+    : DEFAULT_CHAT_MODEL;
+}
+
+function eventDataText(event: AgentProgressEvent | undefined, key: string) {
+  const value = event?.data?.[key];
+  return typeof value === "string" ? value : "";
+}
+
+function isHandoffEvent(event: AgentProgressEvent | undefined) {
+  return eventDataText(event, "phase") === "agent_handoff";
+}
+
+function eventStageLabel(event: AgentProgressEvent) {
+  if (isHandoffEvent(event)) return "Agent 交接";
+  if (event.type === "tool_start") return "调用工具";
+  if (event.type === "tool_end") return "工具结果";
+  if (event.type === "retrieving") return "检索";
+  if (event.type === "writing") return eventDataText(event, "toolName") ? "写作工具" : "生成回答";
+  if (event.type === "done") return "完成";
+  if (event.type === "error") return "错误";
+  return "思考";
+}
+
+function eventStageClass(event: AgentProgressEvent) {
+  return isHandoffEvent(event)
+    ? "bg-[#efe3bd] text-[#7a5a18] ring-1 ring-[#d7b75d]/45"
+    : "bg-[#e5ebe5] text-sage-700";
+}
+
 function AgentProgressCard({ events }: { events: AgentProgressEvent[] }) {
   const latestEvent = events[events.length - 1];
-  const visibleHistory = events.slice(Math.max(0, events.length - 5));
+  const visibleHistory = events.slice(Math.max(0, events.length - 6));
+  const latestDescription = eventDataText(latestEvent, "toolDescription");
+  const latestHandoffDescription = eventDataText(latestEvent, "handoffDescription");
+  const latestToolName = eventDataText(latestEvent, "toolName");
+  const latestModel = [...events].reverse().map((event) => eventDataText(event, "model")).find(Boolean);
 
   const getEventIcon = (event?: AgentProgressEvent) => {
     if (!event) return <Bot className="h-4 w-4" />;
+    if (isHandoffEvent(event)) {
+      return <ArrowRightLeft className="h-4 w-4" />;
+    }
     if (event.type === "tool_start" || event.type === "tool_end") {
       return <Wrench className="h-4 w-4" />;
     }
@@ -75,10 +117,32 @@ function AgentProgressCard({ events }: { events: AgentProgressEvent[] }) {
               {getEventIcon(latestEvent)}
             </span>
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-sage-700">Agent is working</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-xs font-semibold text-sage-700">Agent is working</p>
+                {latestModel ? (
+                  <span className="rounded-full bg-white/58 px-2 py-0.5 text-[10px] font-medium text-[#66766f]">
+                    {latestModel}
+                  </span>
+                ) : null}
+              </div>
               <p className="mt-1 font-medium leading-6 text-morandi-ink">
                 {latestEvent?.message ?? "正在启动论文写作 Agent..."}
               </p>
+              {isHandoffEvent(latestEvent) ? (
+                <p className="mt-1 inline-flex rounded bg-[#efe3bd] px-2 py-1 text-xs font-semibold text-[#7a5a18]">
+                  Agent 正在交接：后续步骤将由更专门的 Agent 继续处理
+                </p>
+              ) : null}
+              {latestDescription || latestHandoffDescription ? (
+                <p className="mt-1 max-w-2xl text-xs leading-5 text-morandi-muted">
+                  {latestHandoffDescription || latestDescription}
+                </p>
+              ) : null}
+              {latestToolName ? (
+                <span className="mt-2 inline-flex max-w-full rounded bg-[#e4ded4] px-1.5 py-0.5 text-[10px] font-medium text-[#716355]">
+                  {latestToolName}
+                </span>
+              ) : null}
             </div>
           </div>
           <Loader2 className="mt-1 h-4 w-4 shrink-0 animate-spin text-sage-700" />
@@ -103,9 +167,24 @@ function AgentProgressCard({ events }: { events: AgentProgressEvent[] }) {
                   {getEventIcon(event)}
                 </span>
                 <div className="min-w-0 rounded-md bg-white/40 px-2.5 py-1.5">
-                  <span className={event === latestEvent ? "font-medium text-morandi-ink" : ""}>
-                    {event.message}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span
+                      className={clsx(
+                        "rounded px-1.5 py-0.5 text-[10px] font-medium",
+                        eventStageClass(event)
+                      )}
+                    >
+                      {eventStageLabel(event)}
+                    </span>
+                    <span className={event === latestEvent ? "font-medium text-morandi-ink" : ""}>
+                      {event.message}
+                    </span>
+                  </div>
+                  {eventDataText(event, "toolDescription") || eventDataText(event, "handoffDescription") ? (
+                    <p className="mt-1 leading-5 text-morandi-muted">
+                      {eventDataText(event, "handoffDescription") || eventDataText(event, "toolDescription")}
+                    </p>
+                  ) : null}
                   <span className="mt-0.5 block text-[10px] uppercase text-[#9a8d7f]">
                     {event.type} · {new Date(event.createdAt).toLocaleTimeString()}
                   </span>
@@ -127,6 +206,13 @@ export function ChatPanel({ project }: { project: PaperProject }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [progressEvents, setProgressEvents] = useState<AgentProgressEvent[]>([]);
+  const [selectedModel, setSelectedModel] = useState(() => {
+    try {
+      return normalizeChatModel(window.localStorage.getItem("paper-agent-chat-model"));
+    } catch {
+      return DEFAULT_CHAT_MODEL;
+    }
+  });
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const activeThread = useMemo<ChatThread | undefined>(
@@ -143,6 +229,14 @@ export function ChatPanel({ project }: { project: PaperProject }) {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [activeThread?.messages.length, loading, progressEvents.length]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("paper-agent-chat-model", normalizeChatModel(selectedModel));
+    } catch {
+      // Ignore storage failures; the current selection still works for this render.
+    }
+  }, [selectedModel]);
 
   const handleSend = async (content: string) => {
     const thread = activeThread;
@@ -163,12 +257,18 @@ export function ChatPanel({ project }: { project: PaperProject }) {
         .projects.find((candidate) => candidate.id === project.id);
       const latestThread = latestProject?.threads.find((candidate) => candidate.id === thread.id);
       let runProgressEvents: AgentProgressEvent[] = [];
-      const reply = await sendMessageToAgentStream(latestProject ?? project, latestThread ?? thread, content, {
-        onProgress: (event) => {
-          runProgressEvents = [...runProgressEvents, event];
-          setProgressEvents(runProgressEvents);
+      const reply = await sendMessageToAgentStream(
+        latestProject ?? project,
+        latestThread ?? thread,
+        content,
+        normalizeChatModel(selectedModel),
+        {
+          onProgress: (event) => {
+            runProgressEvents = [...runProgressEvents, event];
+            setProgressEvents(runProgressEvents);
+          }
         }
-      });
+      );
       const hasFileChangePatch = Boolean(
         reply.patches?.some((patch) => patch.type === "proposeFileChange")
       );
@@ -241,7 +341,12 @@ export function ChatPanel({ project }: { project: PaperProject }) {
         ))}
         {loading ? <AgentProgressCard events={progressEvents} /> : null}
       </div>
-      <ChatComposer disabled={loading || !activeThread} onSend={handleSend} />
+      <ChatComposer
+        disabled={loading || !activeThread}
+        model={selectedModel}
+        onModelChange={setSelectedModel}
+        onSend={handleSend}
+      />
       <AgentContextDrawer open={drawerOpen} context={context} onClose={() => setDrawerOpen(false)} />
     </section>
   );

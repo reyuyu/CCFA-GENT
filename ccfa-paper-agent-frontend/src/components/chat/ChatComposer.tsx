@@ -1,13 +1,25 @@
-import { Loader2, Send } from "lucide-react";
+import { Cpu, Loader2, Send } from "lucide-react";
 import { useState } from "react";
+import clsx from "clsx";
 import { Button } from "../ui/Button";
 import { Textarea } from "../ui/Textarea";
 
+export const DEFAULT_CHAT_MODEL = "deepseek-v4-flash";
+
+export const CHAT_MODEL_OPTIONS = [
+  { value: "deepseek-v4-flash", label: "V4 Flash", hint: "轻快" },
+  { value: "deepseek-v4-pro", label: "V4 Pro", hint: "深度" }
+];
+
 export function ChatComposer({
   disabled,
+  model,
+  onModelChange,
   onSend
 }: {
   disabled?: boolean;
+  model: string;
+  onModelChange: (model: string) => void;
   onSend: (content: string) => void;
 }) {
   const [value, setValue] = useState("");
@@ -35,13 +47,50 @@ export function ChatComposer({
             }
           }}
         />
-        <div className="flex items-center justify-between px-1 pb-1">
-          <p className="text-xs text-morandi-muted">
-            {disabled ? "Agent 正在处理上一条消息..." : "Enter 发送，Shift+Enter 换行"}
-          </p>
+        <div className="flex flex-col gap-3 px-1 pb-1 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="flex w-full min-w-0 items-center gap-2 rounded-md border border-[#c4b8aa] bg-white/58 p-1 text-xs text-morandi-muted shadow-inner shadow-[#7c756e]/5 sm:w-auto">
+              <Cpu className="h-3.5 w-3.5 shrink-0 text-sage-700" />
+              <div className="grid min-w-[210px] flex-1 grid-cols-2 gap-1">
+                {CHAT_MODEL_OPTIONS.map((option) => {
+                  const active = model === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={clsx(
+                        "h-8 rounded px-2 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sage-600/20 disabled:cursor-not-allowed",
+                        active
+                          ? "bg-[#253029] text-white shadow-sm"
+                          : "text-morandi-muted hover:bg-white/70 hover:text-morandi-ink"
+                      )}
+                      disabled={disabled}
+                      onClick={() => onModelChange(option.value)}
+                      aria-pressed={active}
+                    >
+                      <span className="block truncate text-xs font-semibold leading-4">{option.label}</span>
+                      <span
+                        className={clsx(
+                          "block truncate text-[10px] leading-3",
+                          active ? "text-[#dce8da]" : "text-[#8f8274]"
+                        )}
+                      >
+                        {option.hint}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <p className="shrink-0 text-xs text-morandi-muted">
+              {disabled ? "Agent 正在处理上一条消息..." : "Enter 发送，Shift+Enter 换行"}
+            </p>
+          </div>
           <Button
             variant="primary"
-            icon={disabled ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            icon={
+              disabled ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />
+            }
             disabled={disabled}
             onClick={submit}
           >

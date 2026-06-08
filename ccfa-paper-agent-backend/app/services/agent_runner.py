@@ -62,6 +62,145 @@ TOOL_PROGRESS_MESSAGES.update(
     }
 )
 
+TOOL_PROGRESS_DETAILS = {
+    "list_draft_sections": {
+        "label": "读取初稿结构",
+        "description": "列出当前 draft manuscript 的章节标题和层级，用来判断应阅读或修改哪一部分。",
+    },
+    "get_draft_section_content": {
+        "label": "读取初稿章节",
+        "description": "按章节标题提取正文片段，供 Agent 做针对性的检查、改写或续写。",
+    },
+    "list_draft_paragraphs": {
+        "label": "读取段落清单",
+        "description": "查看初稿中已拆分的段落、段落编号和用户指定小标题。",
+    },
+    "get_draft_paragraph_content": {
+        "label": "读取段落内容",
+        "description": "获取指定段落的完整文本，避免只凭摘要进行写作判断。",
+    },
+    "get_draft_paragraph_status": {
+        "label": "读取段落状态",
+        "description": "查看段落当前写作状态和用户标注，判断是否需要补写、润色或检查。",
+    },
+    "list_reference_papers": {
+        "label": "读取参考论文清单",
+        "description": "列出核心和可选参考文献，帮助选择相关证据来源。",
+    },
+    "list_reference_sections": {
+        "label": "读取参考论文结构",
+        "description": "查看参考论文的章节目录，定位摘要、方法、实验或讨论等可用材料。",
+    },
+    "get_reference_section_content": {
+        "label": "读取参考论文章节",
+        "description": "提取参考论文指定章节内容，用于对齐论证、写作结构或相关工作表述。",
+    },
+    "edit_draft": {
+        "label": "生成整篇初稿修改",
+        "description": "为整篇 draft manuscript 生成待确认的文件修改 patch，不会直接写入本地文件。",
+    },
+    "edit_draft_section": {
+        "label": "生成章节修改",
+        "description": "替换指定章节内容并生成前端可预览、可确认的修改建议。",
+    },
+    "edit_draft_paragraph_content": {
+        "label": "生成段落修改",
+        "description": "替换指定段落内容，适合局部润色、改写、补写或续写。",
+    },
+    "edit_draft_paragraph_status": {
+        "label": "更新段落状态",
+        "description": "更新段落写作状态或用户指定小标题，帮助后续写作管理。",
+    },
+    "edit_project_status": {
+        "label": "更新项目状态",
+        "description": "更新项目标题、目标会议、写作阶段或整体进度描述。",
+    },
+    "get_introduction_outline": {
+        "label": "读取 Introduction 大纲",
+        "description": "读取 Introduction 段落规划，用来保持后续写作和检查的结构一致。",
+    },
+    "edit_introduction_outline": {
+        "label": "更新 Introduction 大纲",
+        "description": "生成或调整 Introduction 段落规划，并交给前端同步到项目状态。",
+    },
+    "get_scientific_problem_memory": {
+        "label": "读取科学问题记忆",
+        "description": "查看论文核心问题、关键 gap、贡献点和风险记录。",
+    },
+    "edit_scientific_problem_memory": {
+        "label": "更新科学问题记忆",
+        "description": "更新论文的问题定义、动机、贡献点或检查笔记。",
+    },
+    "list_writing_skill_registry": {
+        "label": "查看写作 Skill 注册表",
+        "description": "查找可用写作 skill，选择与当前任务最匹配的写作指导。",
+    },
+    "read_writing_skill_instruction": {
+        "label": "读取写作 Skill 指令",
+        "description": "读取特定写作 skill 的规则，确保生成内容符合本地写作规范。",
+    },
+    "list_writing_skill_files": {
+        "label": "查看写作 Skill 文件",
+        "description": "列出 skill 内的参考材料、脚本或写作积累文件。",
+    },
+    "read_writing_skill_file": {
+        "label": "读取写作 Skill 文件",
+        "description": "读取本地写作积累或参考说明，用来增强表达和结构选择。",
+    },
+    "edit_writing_skill_file": {
+        "label": "更新写作 Skill 文件",
+        "description": "把新的写作经验或表达积累写入 skill 文件，供后续任务复用。",
+    },
+    "list_checking_skill_registry": {
+        "label": "查看检查 Skill 注册表",
+        "description": "查找可用检查 skill，选择适合当前稿件诊断的检查流程。",
+    },
+    "read_checking_skill_instruction": {
+        "label": "读取检查 Skill 指令",
+        "description": "读取检查规则，确保反馈覆盖逻辑、证据、结构和风险。",
+    },
+    "list_checking_skill_files": {
+        "label": "查看检查 Skill 文件",
+        "description": "列出检查 skill 内的参考文件或检查模板。",
+    },
+    "read_checking_skill_file": {
+        "label": "读取检查 Skill 文件",
+        "description": "读取检查参考材料，辅助生成更具体的诊断意见。",
+    },
+    "semantic_paper_search": {
+        "label": "Semantic Scholar 搜索",
+        "description": "按关键词检索相关论文，寻找可加入阅读队列或支撑论证的文献。",
+    },
+    "semantic_paper_citation_search": {
+        "label": "检索后续被引工作",
+        "description": "查找引用某篇论文的后续研究，用于追踪近期发展和影响。",
+    },
+    "semantic_paper_reference_search": {
+        "label": "检索参考文献",
+        "description": "查看某篇论文引用的前置工作，补齐理论或方法背景。",
+    },
+    "request_reference_paper_reading": {
+        "label": "加入参考阅读请求",
+        "description": "把候选论文交给前端，等待用户确认是否下载解析并加入项目文献库。",
+    },
+    "retrieve_academic_papers": {
+        "label": "调用学术检索 Agent",
+        "description": "把检索任务交给专门的文献检索 Agent，返回可阅读的候选论文。",
+    },
+    "get_current_local_time": {
+        "label": "读取本机时间",
+        "description": "获取当前本地时间，处理和日期相关的任务或记录。",
+    },
+    "handoff_to_paper_check_agent": {
+        "label": "切换到论文检查 Agent",
+        "description": "将任务转交给检查 Agent，专注诊断稿件问题和改进建议。",
+    },
+    "handoff_to_writing_agent": {
+        "label": "切换到论文写作 Agent",
+        "description": "将任务转交给写作 Agent，专注生成、改写或补全文本。",
+    },
+}
+
 
 WRITING_TOOL_NAMES = {
     "edit_draft",
@@ -596,6 +735,23 @@ def _progress_event(
     }
 
 
+def _settings_for_request(settings: Settings, request: AgentRequest) -> Settings:
+    requested_model = (request.model or "").strip()
+    if not requested_model:
+        return settings
+    return settings.model_copy(update={"deepseek_model": requested_model})
+
+
+def _tool_detail(tool_name: str) -> dict[str, str]:
+    detail = TOOL_PROGRESS_DETAILS.get(tool_name)
+    if detail:
+        return detail
+    return {
+        "label": tool_name.replace("_", " "),
+        "description": "Agent 正在调用这个工具获取项目材料、执行检索或生成修改结果。",
+    }
+
+
 def _raw_item_value(raw_item: Any, key: str) -> Any:
     if isinstance(raw_item, dict):
         return raw_item.get(key)
@@ -623,8 +779,12 @@ def _progress_from_stream_event(event: Any) -> Optional[dict[str, Any]]:
         agent_name = getattr(getattr(event, "new_agent", None), "name", "agent")
         return _progress_event(
             "thinking",
-            f"正在切换到 {agent_name}...",
-            {"agentName": agent_name},
+            f"正在交接给 {agent_name}...",
+            {
+                "phase": "agent_handoff",
+                "agentName": agent_name,
+                "handoffDescription": "任务正在从当前 Agent 转交给更适合的专门 Agent 处理。",
+            },
         )
 
     if event_type != "run_item_stream_event":
@@ -636,23 +796,35 @@ def _progress_from_stream_event(event: Any) -> Optional[dict[str, Any]]:
 
     if event_name == "tool_called":
         tool_message = TOOL_PROGRESS_MESSAGES.get(tool_name)
+        tool_detail = _tool_detail(tool_name)
         display_message = (
-            f"{tool_message}（工具：{tool_name}）"
+            f"{tool_message}（{tool_detail['label']}）"
             if tool_message
-            else f"正在调用工具 {tool_name}..."
+            else f"正在调用工具 {tool_detail['label']}..."
         )
         return _progress_event(
             "writing" if tool_name in WRITING_TOOL_NAMES else "tool_start",
             display_message,
-            {"toolName": tool_name},
+            {
+                "phase": "tool_call",
+                "toolName": tool_name,
+                "toolLabel": tool_detail["label"],
+                "toolDescription": tool_detail["description"],
+            },
         )
 
     if event_name == "tool_output":
-        display_tool = "" if tool_name == "unknown_tool" else f" {tool_name}"
+        tool_detail = _tool_detail(tool_name)
+        display_tool = "" if tool_name == "unknown_tool" else f" {tool_detail['label']}"
         return _progress_event(
             "tool_end",
             f"工具{display_tool}执行完成，正在整理结果...",
-            {"toolName": tool_name},
+            {
+                "phase": "tool_result",
+                "toolName": tool_name,
+                "toolLabel": tool_detail["label"],
+                "toolDescription": tool_detail["description"],
+            },
         )
 
     if event_name == "message_output_created":
@@ -662,7 +834,14 @@ def _progress_from_stream_event(event: Any) -> Optional[dict[str, Any]]:
         return _progress_event("thinking", "正在判断当前材料是否足够支撑回答...")
 
     if event_name in {"handoff_requested", "handoff_occured"}:
-        return _progress_event("thinking", "正在调整任务处理方式...")
+        return _progress_event(
+            "thinking",
+            "正在发起 Agent 交接...",
+            {
+                "phase": "agent_handoff",
+                "handoffDescription": "系统判断当前任务需要切换到写作或检查专门 Agent。",
+            },
+        )
 
     return None
 
@@ -751,7 +930,8 @@ def _is_broken_tool_history_error(error: Exception) -> bool:
 
 
 async def run_paper_agent(request: AgentRequest, settings: Settings) -> AgentResponse:
-    if not settings.deepseek_api_key:
+    run_settings = _settings_for_request(settings, request)
+    if not run_settings.deepseek_api_key:
         return AgentResponse(
             content=(
                 "Backend is running, but `DEEPSEEK_API_KEY` is not configured. "
@@ -768,9 +948,9 @@ async def run_paper_agent(request: AgentRequest, settings: Settings) -> AgentRes
     )
     requires_file_change_patch = _requires_file_change_patch(request.userMessage)
     allow_non_manuscript_file_edit = _is_skill_resource_command(request.userMessage)
-    required_tool_choice = is_edit_command and _supports_required_tool_choice(settings.deepseek_model)
-    agent = create_paper_agent(settings, tool_choice="required" if required_tool_choice else None)
-    session = get_thread_session(settings, request.projectId, request.threadId)
+    required_tool_choice = is_edit_command and _supports_required_tool_choice(run_settings.deepseek_model)
+    agent = create_paper_agent(run_settings, tool_choice="required" if required_tool_choice else None)
+    session = get_thread_session(run_settings, request.projectId, request.threadId)
     run_context = PaperAgentRunContext(project_context=request.context)
 
     try:
@@ -788,8 +968,8 @@ async def run_paper_agent(request: AgentRequest, settings: Settings) -> AgentRes
         if not _is_broken_tool_history_error(error):
             return _error_response(error)
 
-        await clear_thread_session(settings, request.projectId, request.threadId)
-        retry_session = get_thread_session(settings, request.projectId, request.threadId)
+        await clear_thread_session(run_settings, request.projectId, request.threadId)
+        retry_session = get_thread_session(run_settings, request.projectId, request.threadId)
         retry_context = PaperAgentRunContext(project_context=request.context)
         try:
             result = await Runner.run(
@@ -821,12 +1001,17 @@ async def run_paper_agent_stream(
     request: AgentRequest,
     settings: Settings,
 ) -> AsyncIterator[dict[str, Any]]:
+    run_settings = _settings_for_request(settings, request)
     yield {
         "type": "progress",
-        "event": _progress_event("thinking", "正在读取论文工程信息..."),
+        "event": _progress_event(
+            "thinking",
+            "正在读取论文工程信息...",
+            {"model": run_settings.deepseek_model},
+        ),
     }
 
-    if not settings.deepseek_api_key:
+    if not run_settings.deepseek_api_key:
         response = AgentResponse(
             content=(
                 "Backend is running, but `DEEPSEEK_API_KEY` is not configured. "
@@ -849,14 +1034,18 @@ async def run_paper_agent_stream(
     )
     requires_file_change_patch = _requires_file_change_patch(request.userMessage)
     allow_non_manuscript_file_edit = _is_skill_resource_command(request.userMessage)
-    required_tool_choice = is_edit_command and _supports_required_tool_choice(settings.deepseek_model)
-    agent = create_paper_agent(settings, tool_choice="required" if required_tool_choice else None)
-    session = get_thread_session(settings, request.projectId, request.threadId)
+    required_tool_choice = is_edit_command and _supports_required_tool_choice(run_settings.deepseek_model)
+    agent = create_paper_agent(run_settings, tool_choice="required" if required_tool_choice else None)
+    session = get_thread_session(run_settings, request.projectId, request.threadId)
     run_context = PaperAgentRunContext(project_context=request.context)
 
     yield {
         "type": "progress",
-        "event": _progress_event("thinking", "正在分析任务并规划可用工具..."),
+        "event": _progress_event(
+            "thinking",
+            f"正在使用 {run_settings.deepseek_model} 分析任务并规划可用工具...",
+            {"model": run_settings.deepseek_model},
+        ),
     }
 
     try:
@@ -903,8 +1092,8 @@ async def run_paper_agent_stream(
                 "检测到本线程 Agent 会话历史不完整，正在清理记忆并重试...",
             ),
         }
-        await clear_thread_session(settings, request.projectId, request.threadId)
-        retry_session = get_thread_session(settings, request.projectId, request.threadId)
+        await clear_thread_session(run_settings, request.projectId, request.threadId)
+        retry_session = get_thread_session(run_settings, request.projectId, request.threadId)
         retry_context = PaperAgentRunContext(project_context=request.context)
 
         try:

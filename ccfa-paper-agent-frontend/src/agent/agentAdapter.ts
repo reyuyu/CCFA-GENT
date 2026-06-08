@@ -129,7 +129,8 @@ export function buildAgentContext(project: PaperProject): AgentContext {
 export async function sendMessageToAgent(
   project: PaperProject,
   thread: ChatThread,
-  userMessage: string
+  userMessage: string,
+  model?: string
 ): Promise<AgentResponse> {
   const context = buildAgentContext({ ...project, activeThreadId: thread.id });
   const response = await fetch(`${getAgentApiUrl()}/api/agent/chat`, {
@@ -141,7 +142,8 @@ export async function sendMessageToAgent(
       projectId: project.id,
       threadId: thread.id,
       userMessage,
-      context
+      context,
+      model
     })
   });
 
@@ -238,6 +240,7 @@ export async function sendMessageToAgentStream(
   project: PaperProject,
   thread: ChatThread,
   userMessage: string,
+  model?: string,
   handlers: AgentStreamHandlers = {}
 ): Promise<AgentResponse> {
   const context = buildAgentContext({ ...project, activeThreadId: thread.id });
@@ -251,7 +254,8 @@ export async function sendMessageToAgentStream(
       projectId: project.id,
       threadId: thread.id,
       userMessage,
-      context
+      context,
+      model
     })
   });
 

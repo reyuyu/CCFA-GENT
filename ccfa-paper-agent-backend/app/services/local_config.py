@@ -74,7 +74,7 @@ def ensure_local_env_file() -> None:
             [
                 "DEEPSEEK_API_KEY=",
                 "DEEPSEEK_BASE_URL=https://api.deepseek.com",
-                "DEEPSEEK_MODEL=deepseek-v4-pro",
+                "DEEPSEEK_MODEL=deepseek-v4-flash",
                 "AGENT_MEMORY_DB_PATH=data/agent_sessions.sqlite3",
                 "AGENT_ALLOW_ORIGINS=http://localhost:5173,http://127.0.0.1:5173",
                 "OPENAI_AGENTS_DISABLE_TRACING=1",

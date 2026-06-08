@@ -4,6 +4,24 @@ Major feature changes are listed here. Each entry includes English and Chinese, 
 
 这里记录主要功能变化。每条更新都包含英文和中文，尽量只保留最重要的信息。
 
+## 2026-06-09
+
+### Clearer Agent Event Flow And Model Choice / 更清晰的 Agent 过程流与模型选择
+
+**English**
+
+- The chat UI can now switch between `deepseek-v4-flash` and `deepseek-v4-pro`, with `deepseek-v4-flash` as the default.
+- For routine writing, checking, and project-material organization, Flash is recommended because it is faster and more token-efficient; Pro is better reserved for complex long-horizon reasoning or high-risk rewrites.
+- The Agent event stream now shows concrete descriptions for tool calls, making it clearer when the Agent is reading drafts, references, writing skills, or generating edit proposals.
+- Agent handoff events are emphasized with a dedicated "Agent handoff" label so users can see when the task is transferred to a writing or checking specialist Agent.
+
+**中文**
+
+- 聊天界面现在可以在 `deepseek-v4-flash` 和 `deepseek-v4-pro` 之间切换，默认使用 `deepseek-v4-flash`。
+- 推荐日常写作、检查和资料整理优先使用 Flash：速度更快，也更节省 token；复杂长链路推理或高风险改写再切换到 Pro。
+- Agent event 流现在会展示每个工具调用的具体用途，用户可以更清楚地看到 Agent 正在读取初稿、参考文献、写作 skill，还是生成修改建议。
+- 当任务发生 Agent handoff 时，前端会用更醒目的“Agent 交接”标签突出显示，方便用户理解任务正在转交给写作或检查专门 Agent。
+
 ## 2026-06-08
 
 ### Smarter Reference Paper Intake / 更顺手的参考论文加入流程
