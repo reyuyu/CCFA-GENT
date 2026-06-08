@@ -7,6 +7,7 @@ Major feature changes are listed here. Each entry includes English and Chinese, 
 ## 2026-06-08
 
 ### Retrieval Reading Requests / 检索论文精读请求
+<img width="2037" height="1079" alt="image" src="https://github.com/user-attachments/assets/dd9b8bb7-2650-4482-a1a2-0eb650edc705" />
 
 **English**
 
