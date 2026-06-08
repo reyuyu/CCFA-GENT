@@ -6,24 +6,25 @@ Major feature changes are listed here. Each entry includes English and Chinese, 
 
 ## 2026-06-08
 
-### Retrieval Reading Requests / 检索论文精读请求
+### Smarter Reference Paper Intake / 更顺手的参考论文加入流程
+
 <img width="2037" height="1079" alt="image" src="https://github.com/user-attachments/assets/dd9b8bb7-2650-4482-a1a2-0eb650edc705" />
 
 **English**
 
-- Added `referenceRequests` to Agent responses so high-value retrieved papers with accessible PDFs can become user-confirmed reading request cards.
-- Added `request_reference_paper_reading` for the manager, writing, checking, and retrieval agents; agents no longer need to say they lack permission when the user asks to add a retrieved paper.
-- Added `/api/mineru/parse-pdf-url`, allowing the backend to download a PDF URL, validate it, parse it with MinerU, and return Markdown plus assets.
-- Added frontend request cards with `Add`, `Add as core`, and `Ignore`; accepted requests are parsed and added to `coreReferences` or `optionalReferences`.
-- Updated retrieval prompts so queued requests do not block the current answer and are not treated as read evidence until the PDF is parsed locally.
+- When the Agent finds a highly relevant paper with an accessible PDF, it can now show a reading request card instead of only listing the paper.
+- Users can accept the card to add the paper as a core or optional reference, or ignore it if it is not useful.
+- After acceptance, the app automatically fetches and parses the paper into readable Markdown, then adds it to the project reference list.
+- The Agent can continue answering the current question while the reading request waits for user confirmation.
+- Retrieved papers are still treated as recommendations until the user accepts them and the parsed paper is available in the local project.
 
 **中文**
 
-- 为 Agent 响应新增 `referenceRequests`，使高价值且有可访问 PDF 的检索论文可以变成用户确认的精读请求卡片。
-- 为主控、写作、检查和检索 Agent 增加 `request_reference_paper_reading` 工具；当用户要求添加检索论文时，不再只回答“没有权限”。
-- 新增 `/api/mineru/parse-pdf-url`，由后端下载 PDF URL、校验资源、调用 MinerU 解析，并返回 Markdown 和图片资产。
-- 前端新增精读请求卡片，支持 `Add`、`Add as core` 和 `Ignore`；用户确认后加入核心或可选参考论文。
-- 更新检索提示词，明确精读请求不阻塞当前回答，且 PDF 未解析成本地 Markdown 前不能作为已读证据。
+- 当 Agent 找到高度相关且可以获取 PDF 的论文时，现在会展示“精读请求卡片”，而不只是把论文列出来。
+- 用户可以一键接受，把论文加入核心参考或可选参考；如果暂时不需要，也可以忽略。
+- 用户确认后，系统会自动获取并解析论文，将其整理成可阅读的 Markdown，再加入当前论文工程的参考论文列表。
+- Agent 不需要等待论文解析完成，可以先继续回答当前问题；精读请求由用户稍后确认。
+- 检索到的论文在用户确认并解析入库前，仍然只作为推荐候选，不会被当作已经读过的本地证据。
 
 ## 2026-06-07
 
