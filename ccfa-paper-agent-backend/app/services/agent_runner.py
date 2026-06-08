@@ -848,7 +848,7 @@ def _progress_from_stream_event(event: Any) -> Optional[dict[str, Any]]:
 
 def _supports_required_tool_choice(model_name: str) -> bool:
     lowered = model_name.lower()
-    unsupported_markers = ("reasoner", "thinking", "v4-pro")
+    unsupported_markers = ("reasoner", "thinking", "v4-flash", "v4-pro")
     return not any(marker in lowered for marker in unsupported_markers)
 
 
@@ -929,6 +929,15 @@ def _is_broken_tool_history_error(error: Exception) -> bool:
     )
 
 
+def _is_unsupported_tool_choice_error(error: Exception) -> bool:
+    message = str(getattr(error, "message", error)).lower()
+    return "tool_choice" in message and (
+        "does not support" in message
+        or "not support" in message
+        or "unsupported" in message
+    )
+
+
 async def run_paper_agent(request: AgentRequest, settings: Settings) -> AgentResponse:
     run_settings = _settings_for_request(settings, request)
     if not run_settings.deepseek_api_key:
@@ -965,6 +974,27 @@ async def run_paper_agent(request: AgentRequest, settings: Settings) -> AgentRes
     except (AuthenticationError, RateLimitError, APIConnectionError) as error:
         return _error_response(error)
     except APIError as error:
+        if required_tool_choice and _is_unsupported_tool_choice_error(error):
+            fallback_agent = create_paper_agent(run_settings, tool_choice=None)
+            fallback_context = PaperAgentRunContext(project_context=request.context)
+            try:
+                fallback_result = await Runner.run(
+                    fallback_agent,
+                    input=build_agent_input(request),
+                    context=fallback_context,
+                    session=session,
+                    hooks=PaperAgentHooks(),
+                    max_turns=40,
+                )
+            except (AuthenticationError, RateLimitError, APIConnectionError, APIError) as fallback_error:
+                return _error_response(fallback_error)
+            return _response_from_final_output(
+                fallback_result.final_output,
+                fallback_context,
+                requires_file_change_patch,
+                allow_non_manuscript_file_edit,
+            )
+
         if not _is_broken_tool_history_error(error):
             return _error_response(error)
 
@@ -1079,6 +1109,52 @@ async def run_paper_agent_stream(
         yield {"type": "progress", "event": _progress_event("error", response.content)}
         yield {"type": "final", "response": response.model_dump(mode="json", exclude_none=True)}
     except APIError as error:
+        if required_tool_choice and _is_unsupported_tool_choice_error(error):
+            yield {
+                "type": "progress",
+                "event": _progress_event(
+                    "thinking",
+                    "DeepSeek thinking mode 不支持强制工具调用，正在改为普通工具模式重试...",
+                    {
+                        "phase": "tool_choice_fallback",
+                        "model": run_settings.deepseek_model,
+                    },
+                ),
+            }
+            fallback_agent = create_paper_agent(run_settings, tool_choice=None)
+            fallback_context = PaperAgentRunContext(project_context=request.context)
+            try:
+                fallback_result = Runner.run_streamed(
+                    fallback_agent,
+                    input=build_agent_input(request),
+                    context=fallback_context,
+                    session=session,
+                    hooks=PaperAgentHooks(),
+                    max_turns=40,
+                )
+
+                async for stream_event in fallback_result.stream_events():
+                    progress = _progress_from_stream_event(stream_event)
+                    if progress:
+                        yield {"type": "progress", "event": progress}
+
+                response = _response_from_final_output(
+                    fallback_result.final_output,
+                    fallback_context,
+                    requires_file_change_patch,
+                    allow_non_manuscript_file_edit,
+                )
+                yield {
+                    "type": "progress",
+                    "event": _progress_event("done", "回答已生成。"),
+                }
+                yield {"type": "final", "response": response.model_dump(mode="json", exclude_none=True)}
+            except (AuthenticationError, RateLimitError, APIConnectionError, APIError) as fallback_error:
+                response = _error_response(fallback_error)
+                yield {"type": "progress", "event": _progress_event("error", response.content)}
+                yield {"type": "final", "response": response.model_dump(mode="json", exclude_none=True)}
+            return
+
         if not _is_broken_tool_history_error(error):
             response = _error_response(error)
             yield {"type": "progress", "event": _progress_event("error", response.content)}
