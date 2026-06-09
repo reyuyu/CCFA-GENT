@@ -331,11 +331,11 @@ export function FileChangeReviewModal({
       description={change?.summary}
       onClose={onClose}
       widthClass="max-w-none w-[min(1480px,calc(100vw-32px))]"
-      bodyClassName="p-0"
+      bodyClassName="p-0 !overflow-hidden"
     >
       {change ? (
-        <div className="flex max-h-[calc(92vh-72px)] min-h-[650px] flex-col">
-          <div className="border-b border-morandi-clay/70 bg-paper-100 px-5 py-3">
+        <div className="flex h-[calc(92vh-72px)] min-h-0 flex-col overflow-hidden">
+          <div className="shrink-0 border-b border-morandi-clay/70 bg-paper-100 px-5 py-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="text-sm text-stone-600">
                 <p>
@@ -393,45 +393,19 @@ export function FileChangeReviewModal({
 
           <div className="min-h-0 flex-1 overflow-hidden bg-[#f8f6f2]">
             {mode === "rendered" ? (
-              <div className="h-full overflow-y-auto p-5">
-                {sections.length ? (
-                  <div className="space-y-5">
-                    {sections.map((section, index) => (
-                      <section
-                        key={section.id}
-                        className="overflow-hidden rounded-lg border border-morandi-clay/70 bg-white shadow-sm"
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-morandi-clay/60 bg-[#fbfaf7] px-4 py-3">
-                          <h3 className="text-sm font-semibold text-morandi-ink">
-                            改动片段 {index + 1}
-                          </h3>
-                          <div className="flex flex-wrap gap-2 text-xs text-morandi-muted">
-                            <span>原文 {formatLineRange(section.oldStart, section.oldEnd)}</span>
-                            <span>修改后 {formatLineRange(section.newStart, section.newEnd)}</span>
-                          </div>
-                        </div>
-                        <div className="grid min-h-[220px] lg:grid-cols-2">
-                          <div className="border-b border-morandi-clay/60 lg:border-b-0 lg:border-r">
-                            <div className="sticky top-0 z-10 border-b border-red-100 bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
-                              原文
-                            </div>
-                            <MarkdownContent content={section.oldMarkdown} file={file} emptyText="这里是新增内容。" />
-                          </div>
-                          <div>
-                            <div className="sticky top-0 z-10 border-b border-emerald-100 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-700">
-                              修改后
-                            </div>
-                            <MarkdownContent content={section.newMarkdown} file={file} emptyText="这里的内容被删除。" />
-                          </div>
-                        </div>
-                      </section>
-                    ))}
+              <div className="grid h-full overflow-hidden lg:grid-cols-2">
+                <div className="min-h-0 overflow-y-auto border-b border-morandi-clay/70 bg-white lg:border-b-0 lg:border-r">
+                  <div className="sticky top-0 z-10 border-b border-red-100 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700">
+                    原文全文渲染
                   </div>
-                ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-morandi-muted">
-                    没有检测到文本差异。
+                  <MarkdownContent content={change.oldContent} file={file} />
+                </div>
+                <div className="min-h-0 overflow-y-auto bg-white">
+                  <div className="sticky top-0 z-10 border-b border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
+                    修改后全文渲染
                   </div>
-                )}
+                  <MarkdownContent content={change.newContent} file={file} />
+                </div>
               </div>
             ) : null}
 
@@ -499,7 +473,7 @@ export function FileChangeReviewModal({
             ) : null}
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-morandi-clay/70 bg-white px-5 py-4">
+          <div className="flex shrink-0 justify-end gap-2 border-t border-morandi-clay/70 bg-white px-5 py-4">
             <Button variant="danger" disabled={applying} onClick={onReject}>
               拒绝修改
             </Button>
