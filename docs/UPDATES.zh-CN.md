@@ -4,6 +4,24 @@
 
 Major feature changes are listed here. Each entry includes Chinese and English, keeping only the essentials.
 
+## 2026-06-10
+
+### 更舒服的 Agent 问答工作台 / More Comfortable Agent Chat Workspace
+
+**中文**
+
+- 优化 Agent 回答中的 Markdown 文本块和代码块样式，改为浅色纸面风格，选中文本时不再出现刺眼的黑底白字反差。
+- 左侧资料/线程栏新增平滑收起和展开交互，收起后的回拉按钮移到页面左侧中部，避免遮挡聊天线程标题。
+- 优化聊天页顶部、消息区和输入栏之间的过渡，输入栏从硬切色块改为渐变浮层，并增加更自然的阴影层次。
+- 左侧资料卡片、线程卡片和论文脉络卡片增加轻量立体感；论文脉络默认收起，展开后内部滚动，避免长内容撑开侧栏。
+
+**English**
+
+- Refined Markdown and code block rendering in Agent answers with a light paper-like style, avoiding harsh dark selection contrast.
+- Added a smooth collapse and expand interaction for the left files/threads sidebar, with the restore button moved to the left-middle edge so it does not cover thread titles.
+- Improved transitions between the chat header, message area, and composer; the composer now feels like a floating gradient layer instead of a hard separated color block.
+- Added subtle depth to file, thread, and writing-map cards; the writing map now starts collapsed and scrolls internally when expanded.
+
 ## 2026-06-09
 
 ### 更清晰的 Agent 过程流与模型选择 / Clearer Agent Event Flow And Model Choice

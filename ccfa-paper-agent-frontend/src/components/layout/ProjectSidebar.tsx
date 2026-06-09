@@ -1,4 +1,4 @@
-import { Files, MessagesSquare } from "lucide-react";
+import { Files, MessagesSquare, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useState } from "react";
 import { organizeMarkdownSections } from "../../agent/markdownOrganizerApi";
 import { useProjectStore } from "../../store/projectStore";
@@ -28,7 +28,15 @@ const defaultExpandedFolders: Record<FolderType, boolean> = {
   draftImages: false
 };
 
-export function ProjectSidebar({ project }: { project: PaperProject }) {
+export function ProjectSidebar({
+  project,
+  collapsed,
+  onCollapsedChange
+}: {
+  project: PaperProject;
+  collapsed: boolean;
+  onCollapsedChange: (collapsed: boolean) => void;
+}) {
   const updateReferenceMeta = useProjectStore((state) => state.updateReferenceMeta);
   const renameReferenceFile = useProjectStore((state) => state.renameReferenceFile);
   const updateImageCaption = useProjectStore((state) => state.updateImageCaption);
@@ -103,8 +111,18 @@ export function ProjectSidebar({ project }: { project: PaperProject }) {
 
   return (
     <>
-      <aside className="flex h-full w-[376px] shrink-0 flex-col overflow-hidden border-r border-morandi-clay/70 bg-[#eee8df]/70">
-        <div className="border-b border-morandi-clay/70 bg-[#f7f3ee]/90 px-4 py-3">
+      <div
+        className={`relative z-20 h-full shrink-0 transition-[width] duration-300 ease-out ${
+          collapsed ? "w-0" : "w-[376px]"
+        }`}
+      >
+        <aside
+          className={`absolute inset-y-0 left-0 flex h-full w-[376px] flex-col overflow-hidden border-r border-[#b9aaa0] bg-[linear-gradient(180deg,rgba(247,243,238,0.96)_0%,rgba(238,232,223,0.94)_48%,rgba(224,216,207,0.92)_100%)] shadow-[16px_0_42px_rgba(74,67,60,0.16)] backdrop-blur transition-transform duration-300 ease-out ${
+            collapsed ? "pointer-events-none -translate-x-full" : "translate-x-0"
+          }`}
+          aria-hidden={collapsed}
+        >
+        <div className="border-b border-white/40 bg-[#fbfaf7]/72 px-4 py-3 shadow-[0_10px_24px_rgba(74,67,60,0.06)] backdrop-blur">
           <div className="grid grid-cols-2 gap-1 rounded-lg bg-morandi-clay/35 p-1">
             <button
               type="button"
@@ -201,7 +219,22 @@ export function ProjectSidebar({ project }: { project: PaperProject }) {
             />
           </div>
         )}
-      </aside>
+        </aside>
+        <button
+          type="button"
+          className={`absolute z-30 inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#b9aaa0] bg-[#fbfaf7]/96 text-sage-700 shadow-panel backdrop-blur transition-all duration-300 ease-out hover:bg-white hover:text-morandi-ink focus:outline-none focus:ring-2 focus:ring-sage-600/35 ${
+            collapsed
+              ? "left-2 top-1/2 -translate-y-1/2 hover:translate-x-0.5"
+              : "-right-4 top-4 hover:-translate-y-0.5"
+          }`}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
+          onClick={() => onCollapsedChange(!collapsed)}
+        >
+          {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+        </button>
+      </div>
 
       <MarkdownPreviewModal
         open={Boolean(markdownFile)}

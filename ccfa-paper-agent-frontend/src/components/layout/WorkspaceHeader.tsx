@@ -12,9 +12,9 @@ export function WorkspaceHeader({ project }: { project: PaperProject }) {
   const [editOpen, setEditOpen] = useState(false);
 
   return (
-    <header className="flex h-[88px] shrink-0 items-center justify-between gap-5 border-b border-morandi-clay/70 bg-[#fbfaf7]/90 px-6 backdrop-blur">
+    <header className="flex h-[88px] shrink-0 items-center justify-between gap-5 border-b border-[#c9beb2] bg-[#fbfaf7]/92 px-6 shadow-[0_10px_30px_rgba(74,67,60,0.07)] backdrop-blur">
       <div className="min-w-0">
-        <h1 className="truncate text-xl font-semibold text-morandi-ink">{project.paperTitle}</h1>
+        <h1 className="truncate text-xl font-bold leading-7 text-morandi-ink">{project.paperTitle}</h1>
         <div className="mt-2">
           <ProjectMetaPanel project={project} />
         </div>

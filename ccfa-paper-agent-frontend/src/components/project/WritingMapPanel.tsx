@@ -1,5 +1,5 @@
 import { BookOpen, ChevronDown, Lightbulb, Map, Target } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type {
   IntroductionOutline,
   ScientificProblemMemory,
@@ -54,6 +54,7 @@ export function WritingMapPanel({
   memory?: ScientificProblemMemory;
   outline?: IntroductionOutline;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const scientificProblems = memory?.scientificProblems ?? [];
   const innovations = memory?.innovations ?? [];
   const keyTechnologies = memory?.keyTechnologies ?? [];
@@ -70,9 +71,13 @@ export function WritingMapPanel({
   }
 
   return (
-    <section className="overflow-hidden rounded-lg border border-morandi-clay/70 bg-morandi-mist/70 shadow-sm">
-      <details open>
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 bg-[#fbfaf7] px-3 py-2.5 text-left marker:hidden">
+    <section className="overflow-hidden rounded-lg border border-white/54 bg-[#fbfaf7]/90 shadow-[0_10px_24px_rgba(74,67,60,0.08),inset_0_1px_0_rgba(255,255,255,0.68)] backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(74,67,60,0.12),inset_0_1px_0_rgba(255,255,255,0.78)]">
+      <button
+        type="button"
+        className="flex w-full cursor-pointer items-center justify-between gap-3 bg-white/32 px-3 py-2.5 text-left transition hover:bg-white/58"
+        onClick={() => setExpanded((current) => !current)}
+        aria-expanded={expanded}
+      >
           <span className="flex min-w-0 items-center gap-2">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-morandi-green text-sage-700">
               <Map className="h-4 w-4" />
@@ -84,12 +89,22 @@ export function WritingMapPanel({
               </span>
             </span>
           </span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-morandi-muted" />
-        </summary>
+          <ChevronDown
+            className={`h-4 w-4 shrink-0 text-morandi-muted transition-transform duration-200 ${
+              expanded ? "rotate-180" : "rotate-0"
+            }`}
+          />
+        </button>
 
-        <div className="space-y-3 border-t border-morandi-clay/60 px-3 py-3">
+      <div
+        className={`grid transition-[grid-template-rows] duration-300 ease-out ${
+          expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        }`}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="max-h-[360px] space-y-3 overflow-y-auto border-t border-white/42 bg-[#f7f3ee]/24 px-3 py-3">
           {memory?.notes ? (
-            <p className="rounded-md bg-[#fbfaf7]/80 px-2 py-1.5 text-xs leading-5 text-morandi-muted">
+            <p className="line-clamp-4 rounded-md bg-white/72 px-2 py-1.5 text-xs leading-5 text-morandi-muted">
               {memory.notes}
             </p>
           ) : null}
@@ -134,8 +149,9 @@ export function WritingMapPanel({
               </ol>
             </div>
           ) : null}
+          </div>
         </div>
-      </details>
+      </div>
     </section>
   );
 }

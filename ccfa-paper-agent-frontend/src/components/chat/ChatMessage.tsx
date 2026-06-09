@@ -323,12 +323,12 @@ export function ChatMessage({ message, project }: { message: ChatMessageType; pr
   return (
     <div className={`flex animate-paper-fade-up ${isUser ? "justify-end" : "justify-start"}`}>
       <article
-        className={`max-w-[78%] rounded-lg px-4 py-3 shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-panel ${
+        className={`rounded-xl px-4 py-3 shadow-md ring-1 ring-white/36 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-panel ${
           isUser
-            ? "bg-[#657d86] text-white shadow-[#657d86]/18 [&_*]:text-white"
+            ? "max-w-[72%] bg-[#657d86] text-white shadow-[#657d86]/18 [&_*]:text-white"
             : isSystem
-              ? "border border-[#c9aa7d] bg-[#ead9ca] text-[#6f5a37] shadow-[#8a6d3b]/10"
-              : "border border-[#b8afa4] bg-[#f6f0e8] text-morandi-ink shadow-[#7c756e]/12"
+              ? "max-w-[82%] border border-[#c9aa7d] bg-[#ead9ca] text-[#6f5a37] shadow-[#8a6d3b]/10"
+              : "max-w-[82%] border border-[#b8afa4] bg-[#fbf8f2] text-morandi-ink shadow-[#7c756e]/12"
         }`}
       >
         <div className="mb-2 flex items-center justify-between gap-4">

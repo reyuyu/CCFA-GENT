@@ -32,8 +32,9 @@ export function ChatComposer({
   };
 
   return (
-    <div className="border-t border-[#b8afa4] bg-[#cfc4b8]/90 p-4">
-      <div className="rounded-lg border border-[#a99f94] bg-[#f4efe7] p-2 shadow-md shadow-[#7c756e]/10 transition-all duration-200 focus-within:-translate-y-0.5 focus-within:border-sage-600/55 focus-within:bg-[#fbfaf7] focus-within:shadow-panel focus-within:shadow-[#7c756e]/12">
+    <div className="relative border-t border-white/32 bg-gradient-to-t from-[#d0c6ba]/82 via-[#ddd5cc]/58 to-transparent px-5 pb-5 pt-8 shadow-[0_-18px_44px_rgba(74,67,60,0.08)]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-transparent to-[#ddd5cc]/40" />
+      <div className="relative rounded-xl border border-[#afa397]/78 bg-[#fbfaf7]/94 p-2 shadow-[0_18px_45px_rgba(74,67,60,0.15),inset_0_1px_0_rgba(255,255,255,0.75)] backdrop-blur transition-all duration-200 focus-within:-translate-y-0.5 focus-within:border-sage-600/55 focus-within:bg-white focus-within:shadow-[0_22px_58px_rgba(74,67,60,0.18),inset_0_1px_0_rgba(255,255,255,0.9)]">
         <Textarea
           className="max-h-40 min-h-[76px] border-0 bg-transparent shadow-none focus:ring-0"
           placeholder="向论文写作 Agent 描述任务，例如：帮我检查 Method 的逻辑连贯性"

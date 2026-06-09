@@ -18,8 +18,8 @@ export function ThreadList({
   const switchThread = useProjectStore((state) => state.switchThread);
 
   return (
-    <section className="rounded-lg border border-morandi-clay/70 bg-[#fbfaf7]/90 shadow-sm">
-      <div className="flex items-center justify-between border-b border-morandi-clay/60 px-3 py-2.5">
+    <section className="rounded-lg border border-white/54 bg-[#fbfaf7]/88 shadow-[0_10px_24px_rgba(74,67,60,0.08),inset_0_1px_0_rgba(255,255,255,0.68)] backdrop-blur">
+      <div className="flex items-center justify-between border-b border-white/42 bg-white/32 px-3 py-2.5">
         <div>
           <h3 className="text-sm font-semibold text-morandi-ink">写作线程</h3>
           <p className="mt-0.5 text-xs text-morandi-muted">{threads.length} 个对话上下文</p>
@@ -34,7 +34,7 @@ export function ThreadList({
           <MessageSquarePlus className="h-4 w-4" />
         </Button>
       </div>
-      <div className="max-h-[calc(100vh-180px)] space-y-1 overflow-y-auto p-2">
+      <div className="max-h-[calc(100vh-180px)] space-y-1 overflow-y-auto bg-[#f7f3ee]/24 p-2">
         {threads.map((thread) => (
           <div
             key={thread.id}

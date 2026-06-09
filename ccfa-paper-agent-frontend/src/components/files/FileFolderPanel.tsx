@@ -41,10 +41,10 @@ export function FileFolderPanel({
   const [expanded, setExpanded] = useState(defaultExpanded);
 
   return (
-    <section className="overflow-hidden rounded-lg border border-morandi-clay/70 bg-[#fbfaf7]/90 shadow-sm">
+    <section className="overflow-hidden rounded-lg border border-white/54 bg-[#fbfaf7]/88 shadow-[0_10px_24px_rgba(74,67,60,0.08),inset_0_1px_0_rgba(255,255,255,0.68)] backdrop-blur transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(74,67,60,0.12),inset_0_1px_0_rgba(255,255,255,0.78)]">
       <button
         type="button"
-        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left transition hover:bg-morandi-mist"
+        className="flex w-full items-center justify-between gap-2 bg-white/32 px-3 py-2.5 text-left transition hover:bg-white/58"
         onClick={() => setExpanded((current) => !current)}
       >
         <span className="flex min-w-0 items-center gap-2">
@@ -55,7 +55,7 @@ export function FileFolderPanel({
         {expanded ? <ChevronDown className="h-4 w-4 text-morandi-muted" /> : <ChevronRight className="h-4 w-4 text-morandi-muted" />}
       </button>
       {expanded ? (
-        <div className="border-t border-morandi-clay/60 px-3 py-3">
+        <div className="border-t border-white/42 bg-[#f7f3ee]/30 px-3 py-3">
           <FileUploadBox projectId={projectId} folderType={folderType} />
           <FileList
             folderType={folderType}

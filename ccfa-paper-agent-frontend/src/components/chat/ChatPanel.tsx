@@ -317,13 +317,14 @@ export function ChatPanel({ project }: { project: PaperProject }) {
   };
 
   return (
-    <section className="flex h-full min-w-0 flex-col bg-[linear-gradient(180deg,#d7dfda_0%,#d9d4cb_56%,#d2c7bb_100%)]">
-      <div className="flex items-center justify-between border-b border-[#b8afa4] bg-[#cfd9d5]/85 px-5 py-3 backdrop-blur">
+    <section className="relative isolate flex h-full min-w-0 flex-col overflow-hidden bg-[linear-gradient(180deg,#e1e7e2_0%,#e7e0d7_52%,#d3c8bc_100%)]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.46),transparent_56%)]" />
+      <div className="relative flex items-center justify-between border-b border-white/34 bg-[#f4f0ea]/74 px-5 py-3 shadow-[0_14px_34px_rgba(74,67,60,0.08)] backdrop-blur">
         <div>
-          <h2 className="text-base font-semibold text-morandi-ink">
+          <h2 className="text-base font-bold leading-6 text-morandi-ink">
             {activeThread?.title ?? "Writing thread"}
           </h2>
-          <p className="mt-1 text-sm text-morandi-muted">
+          <p className="mt-1 text-[13px] leading-5 text-morandi-muted">
             Paper writing assistant based on the current project and thread.
           </p>
         </div>
@@ -335,7 +336,7 @@ export function ChatPanel({ project }: { project: PaperProject }) {
           View Agent Context
         </Button>
       </div>
-      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
+      <div ref={scrollRef} className="relative flex-1 space-y-4 overflow-y-auto px-6 py-5">
         {activeThread?.messages.map((message) => (
           <ChatMessage key={message.id} message={message} project={project} />
         ))}
