@@ -62,6 +62,8 @@ TOOL_PROGRESS_MESSAGES.update(
     }
 )
 
+TOOL_PROGRESS_MESSAGES["handoff_to_reference_learning_agent"] = "正在交接给参考学习agent..."
+
 TOOL_PROGRESS_DETAILS = {
     "list_draft_sections": {
         "label": "读取初稿结构",
@@ -198,6 +200,10 @@ TOOL_PROGRESS_DETAILS = {
     "handoff_to_writing_agent": {
         "label": "切换到论文写作 Agent",
         "description": "将任务转交给写作 Agent，专注生成、改写或补全文本。",
+    },
+    "handoff_to_reference_learning_agent": {
+        "label": "切换到参考学习agent",
+        "description": "将任务转交给参考学习agent，专门学习本地参考论文、梳理可借鉴语料、写作逻辑、技术和实验设计。",
     },
 }
 

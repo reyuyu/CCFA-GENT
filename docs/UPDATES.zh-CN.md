@@ -4,6 +4,26 @@
 
 Major feature changes are listed here. Each entry includes Chinese and English, keeping only the essentials.
 
+## 2026-06-11
+
+### 参考学习 Agent / Reference Learning Agent
+
+**中文**
+
+- 新增 `参考学习agent`，可由主控 Agent 自动交接，专门深读本地参考论文。
+- 参考学习agent 会梳理每篇参考论文可借鉴的语料、学术观点、写作逻辑、技术思路和实验设计。
+- 新增 Introduction 好词好句积累规范文件，要求只收录来源明确、可复用、低版权风险的短语、搭配、句式骨架和写作观察。
+- 参考学习agent 可以把可借鉴内容映射到作者初稿的具体章节或段落，并标注 `可直接用`、`需要少量改写`、`只借鉴逻辑` 或 `暂不建议使用`。
+- 必要时，参考学习agent 可以基于参考论文逻辑和现有初稿生成 Introduction 大纲调整建议；正文改写仍交给写作 Agent 处理。
+
+**English**
+
+- Added `参考学习agent`, a specialist handoff agent for deep reading of local reference papers.
+- The agent summarizes reusable source material, academic viewpoints, writing logic, technical ideas, and experiment-design lessons from each reference paper.
+- Added an Introduction good-phrase accumulation template with rules for source attribution, reuse value, and low copyright risk.
+- The agent maps borrowable material to concrete draft sections or paragraphs and labels it as directly usable, needs minor adaptation, logic-only, or not recommended.
+- When needed, it can propose Introduction outline refinements based on reference-paper logic and the existing draft, while manuscript rewriting remains with WritingAgent.
+
 ## 2026-06-10
 
 ### 更舒服的 Agent 问答工作台 / More Comfortable Agent Chat Workspace

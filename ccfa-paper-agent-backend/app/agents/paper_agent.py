@@ -8,9 +8,15 @@ from app.models import create_deepseek_model
 from app.prompts import (
     build_paper_check_agent_instructions,
     build_paper_manager_instructions,
+    build_reference_learning_agent_instructions,
     build_writing_agent_instructions,
 )
-from app.tools import CHECKING_AGENT_TOOLS, PAPER_MANAGER_TOOLS, WRITING_AGENT_TOOLS
+from app.tools import (
+    CHECKING_AGENT_TOOLS,
+    PAPER_MANAGER_TOOLS,
+    REFERENCE_LEARNING_AGENT_TOOLS,
+    WRITING_AGENT_TOOLS,
+)
 
 
 def create_writing_agent(settings: Settings, tool_choice: str | None = None) -> Agent:
@@ -43,11 +49,29 @@ def create_paper_check_agent(settings: Settings, tool_choice: str | None = None)
     )
 
 
+def create_reference_learning_agent(settings: Settings, tool_choice: str | None = None) -> Agent:
+    retrieve_academic_papers = create_retrieve_academic_papers_tool(settings)
+    return Agent(
+        name="参考学习agent",
+        handoff_description=(
+            "Deeply read local reference papers, extract reusable corpus, academic "
+            "viewpoints, writing logic, technical ideas, experiment-design lessons, "
+            "record strong Introduction expressions, and optionally update the "
+            "Introduction outline."
+        ),
+        instructions=build_reference_learning_agent_instructions(),
+        model=create_deepseek_model(settings),
+        model_settings=ModelSettings(tool_choice=tool_choice),
+        tools=[*REFERENCE_LEARNING_AGENT_TOOLS, retrieve_academic_papers],
+    )
+
+
 def create_paper_agent(settings: Settings, tool_choice: str | None = None) -> Agent:
     set_tracing_disabled(settings.disable_tracing)
 
     writing_agent = create_writing_agent(settings, tool_choice=tool_choice)
     paper_check_agent = create_paper_check_agent(settings, tool_choice=tool_choice)
+    reference_learning_agent = create_reference_learning_agent(settings, tool_choice=tool_choice)
     retrieve_academic_papers = create_retrieve_academic_papers_tool(settings)
 
     return Agent(
@@ -64,6 +88,16 @@ def create_paper_agent(settings: Settings, tool_choice: str | None = None) -> Ag
                     "Transfer manuscript checking, evaluation, review-style diagnosis, "
                     "evidence sufficiency, logic, concept alignment, tone, length, and "
                     "whether a paragraph/sentence/word is well written to PaperCheckAgent."
+                ),
+            ),
+            handoff(
+                reference_learning_agent,
+                tool_name_override="handoff_to_reference_learning_agent",
+                tool_description_override=(
+                    "Transfer local reference-paper learning, reusable corpus extraction, "
+                    "academic viewpoint mining, writing-logic analysis, technical/experiment "
+                    "design borrowing, Introduction outline refinement from references, and "
+                    "good academic phrase accumulation to 参考学习agent."
                 ),
             ),
             handoff(
