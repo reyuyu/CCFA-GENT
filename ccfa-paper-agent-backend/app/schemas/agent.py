@@ -3,12 +3,16 @@ from typing import Any, List, Literal, Optional, Union
 from pydantic import BaseModel, Field
 
 
+AgentMode = Literal["auto", "writing", "checking", "learning", "retrieval"]
+
+
 class AgentRequest(BaseModel):
     projectId: str
     threadId: str
     userMessage: str
     context: dict[str, Any]
     model: Optional[str] = None
+    agentMode: AgentMode = "auto"
 
 
 class UpdateProjectMetaPatch(BaseModel):

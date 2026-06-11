@@ -8,14 +8,20 @@ from agents import Runner
 from openai import APIConnectionError, APIError, AuthenticationError, RateLimitError
 from pydantic import ValidationError
 
-from app.agents.paper_agent import create_paper_agent
+from app.agents.paper_agent import (
+    create_paper_agent,
+    create_paper_check_agent,
+    create_reference_learning_agent,
+    create_writing_agent,
+)
+from app.agents.retrieval_agent import create_semantic_scholar_retrieval_agent
 from app.context import build_agent_input
 from app.context.runtime import PaperAgentRunContext
 from app.core.config import Settings
 from app.memory import get_thread_session
 from app.memory.session_store import clear_thread_session
 from app.observability import PaperAgentHooks
-from app.schemas.agent import AgentRequest, AgentResponse
+from app.schemas.agent import AgentMode, AgentRequest, AgentResponse
 
 
 TOOL_PROGRESS_MESSAGES = {
@@ -748,6 +754,35 @@ def _settings_for_request(settings: Settings, request: AgentRequest) -> Settings
     return settings.model_copy(update={"deepseek_model": requested_model})
 
 
+AGENT_MODE_LABELS: dict[AgentMode, str] = {
+    "auto": "智能调度",
+    "writing": "写作agent",
+    "checking": "检查agent",
+    "learning": "学习agent",
+    "retrieval": "检索agent",
+}
+
+
+def _agent_mode_label(agent_mode: AgentMode) -> str:
+    return AGENT_MODE_LABELS.get(agent_mode, AGENT_MODE_LABELS["auto"])
+
+
+def _create_agent_for_mode(
+    settings: Settings,
+    agent_mode: AgentMode,
+    tool_choice: str | None = None,
+):
+    if agent_mode == "writing":
+        return create_writing_agent(settings, tool_choice=tool_choice)
+    if agent_mode == "checking":
+        return create_paper_check_agent(settings, tool_choice=tool_choice)
+    if agent_mode == "learning":
+        return create_reference_learning_agent(settings, tool_choice=tool_choice)
+    if agent_mode == "retrieval":
+        return create_semantic_scholar_retrieval_agent(settings)
+    return create_paper_agent(settings, tool_choice=tool_choice)
+
+
 def _tool_detail(tool_name: str) -> dict[str, str]:
     detail = TOOL_PROGRESS_DETAILS.get(tool_name)
     if detail:
@@ -946,6 +981,7 @@ def _is_unsupported_tool_choice_error(error: Exception) -> bool:
 
 async def run_paper_agent(request: AgentRequest, settings: Settings) -> AgentResponse:
     run_settings = _settings_for_request(settings, request)
+    agent_mode = request.agentMode
     if not run_settings.deepseek_api_key:
         return AgentResponse(
             content=(
@@ -964,7 +1000,11 @@ async def run_paper_agent(request: AgentRequest, settings: Settings) -> AgentRes
     requires_file_change_patch = _requires_file_change_patch(request.userMessage)
     allow_non_manuscript_file_edit = _is_skill_resource_command(request.userMessage)
     required_tool_choice = is_edit_command and _supports_required_tool_choice(run_settings.deepseek_model)
-    agent = create_paper_agent(run_settings, tool_choice="required" if required_tool_choice else None)
+    agent = _create_agent_for_mode(
+        run_settings,
+        agent_mode,
+        tool_choice="required" if required_tool_choice else None,
+    )
     session = get_thread_session(run_settings, request.projectId, request.threadId)
     run_context = PaperAgentRunContext(project_context=request.context)
 
@@ -981,7 +1021,7 @@ async def run_paper_agent(request: AgentRequest, settings: Settings) -> AgentRes
         return _error_response(error)
     except APIError as error:
         if required_tool_choice and _is_unsupported_tool_choice_error(error):
-            fallback_agent = create_paper_agent(run_settings, tool_choice=None)
+            fallback_agent = _create_agent_for_mode(run_settings, agent_mode, tool_choice=None)
             fallback_context = PaperAgentRunContext(project_context=request.context)
             try:
                 fallback_result = await Runner.run(
@@ -1038,12 +1078,17 @@ async def run_paper_agent_stream(
     settings: Settings,
 ) -> AsyncIterator[dict[str, Any]]:
     run_settings = _settings_for_request(settings, request)
+    agent_mode = request.agentMode
     yield {
         "type": "progress",
         "event": _progress_event(
             "thinking",
             "正在读取论文工程信息...",
-            {"model": run_settings.deepseek_model},
+            {
+                "model": run_settings.deepseek_model,
+                "agentMode": agent_mode,
+                "agentModeLabel": _agent_mode_label(agent_mode),
+            },
         ),
     }
 
@@ -1071,7 +1116,11 @@ async def run_paper_agent_stream(
     requires_file_change_patch = _requires_file_change_patch(request.userMessage)
     allow_non_manuscript_file_edit = _is_skill_resource_command(request.userMessage)
     required_tool_choice = is_edit_command and _supports_required_tool_choice(run_settings.deepseek_model)
-    agent = create_paper_agent(run_settings, tool_choice="required" if required_tool_choice else None)
+    agent = _create_agent_for_mode(
+        run_settings,
+        agent_mode,
+        tool_choice="required" if required_tool_choice else None,
+    )
     session = get_thread_session(run_settings, request.projectId, request.threadId)
     run_context = PaperAgentRunContext(project_context=request.context)
 
@@ -1080,7 +1129,11 @@ async def run_paper_agent_stream(
         "event": _progress_event(
             "thinking",
             f"正在使用 {run_settings.deepseek_model} 分析任务并规划可用工具...",
-            {"model": run_settings.deepseek_model},
+            {
+                "model": run_settings.deepseek_model,
+                "agentMode": agent_mode,
+                "agentModeLabel": _agent_mode_label(agent_mode),
+            },
         ),
     }
 
@@ -1127,7 +1180,7 @@ async def run_paper_agent_stream(
                     },
                 ),
             }
-            fallback_agent = create_paper_agent(run_settings, tool_choice=None)
+            fallback_agent = _create_agent_for_mode(run_settings, agent_mode, tool_choice=None)
             fallback_context = PaperAgentRunContext(project_context=request.context)
             try:
                 fallback_result = Runner.run_streamed(

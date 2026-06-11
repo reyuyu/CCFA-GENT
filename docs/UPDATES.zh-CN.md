@@ -6,6 +6,22 @@ Major feature changes are listed here. Each entry includes Chinese and English, 
 
 ## 2026-06-11
 
+### Agent 指定回答选择器 / Agent Mode Selector
+
+**中文**
+
+- 新增 `agentMode` 请求选项，用户可以明确选择智能调度、写作agent、检查agent、学习agent或检索agent。
+- 将聊天框中常驻的一排 agent 按钮改为更紧凑的下拉选择器。
+- 每个 agent 模式都有独立图标、浅色协调配色、说明文字和不透明下拉选项样式。
+- 用户选择会保存在本地，并在 Agent 运行过程卡片中显示当前使用的 agent 模式。
+
+**English**
+
+- Added an `agentMode` request option so users can explicitly choose Auto Dispatch, WritingAgent, PaperCheckAgent, ReferenceLearningAgent, or SemanticScholarRetrievalAgent.
+- Replaced the always-visible agent button row with a compact dropdown selector in the chat composer.
+- Each agent mode now has its own icon, light coordinated color treatment, description, and opaque dropdown option style.
+- The selected agent mode is saved locally and shown in the streaming progress card during Agent runs.
+
 ### 参考学习 Agent / Reference Learning Agent
 
 **中文**

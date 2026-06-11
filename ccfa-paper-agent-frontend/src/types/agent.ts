@@ -7,6 +7,8 @@ import type {
 import type { ScientificProblemMemory, WritingStatus } from "./project";
 import type { IntroductionOutline } from "./project";
 
+export type AgentMode = "auto" | "writing" | "checking" | "learning" | "retrieval";
+
 export type AgentContext = {
   projectMeta: {
     id: string;

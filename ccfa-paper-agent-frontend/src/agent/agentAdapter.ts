@@ -1,5 +1,6 @@
 import type {
   AgentContext,
+  AgentMode,
   AgentPatch,
   AgentProgressEvent,
   AgentReferenceRequest,
@@ -130,7 +131,8 @@ export async function sendMessageToAgent(
   project: PaperProject,
   thread: ChatThread,
   userMessage: string,
-  model?: string
+  model?: string,
+  agentMode: AgentMode = "auto"
 ): Promise<AgentResponse> {
   const context = buildAgentContext({ ...project, activeThreadId: thread.id });
   const response = await fetch(`${getAgentApiUrl()}/api/agent/chat`, {
@@ -143,7 +145,8 @@ export async function sendMessageToAgent(
       threadId: thread.id,
       userMessage,
       context,
-      model
+      model,
+      agentMode
     })
   });
 
@@ -241,6 +244,7 @@ export async function sendMessageToAgentStream(
   thread: ChatThread,
   userMessage: string,
   model?: string,
+  agentMode: AgentMode = "auto",
   handlers: AgentStreamHandlers = {}
 ): Promise<AgentResponse> {
   const context = buildAgentContext({ ...project, activeThreadId: thread.id });
@@ -255,7 +259,8 @@ export async function sendMessageToAgentStream(
       threadId: thread.id,
       userMessage,
       context,
-      model
+      model,
+      agentMode
     })
   });
 

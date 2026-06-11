@@ -14,13 +14,19 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import { buildAgentContext, sendMessageToAgentStream } from "../../agent/agentAdapter";
 import { useProjectStore } from "../../store/projectStore";
-import type { AgentProgressEvent } from "../../types/agent";
+import type { AgentMode, AgentProgressEvent } from "../../types/agent";
 import type { ChatThread } from "../../types/chat";
 import type { PaperProject } from "../../types/project";
 import { createId, nowIso } from "../../utils/id";
 import { Button } from "../ui/Button";
 import { AgentContextDrawer } from "./AgentContextDrawer";
-import { ChatComposer, CHAT_MODEL_OPTIONS, DEFAULT_CHAT_MODEL } from "./ChatComposer";
+import {
+  AGENT_MODE_OPTIONS,
+  ChatComposer,
+  CHAT_MODEL_OPTIONS,
+  DEFAULT_AGENT_MODE,
+  DEFAULT_CHAT_MODEL
+} from "./ChatComposer";
 import { ChatMessage } from "./ChatMessage";
 
 const editKeywordPattern =
@@ -48,6 +54,13 @@ function normalizeChatModel(model: string | null | undefined) {
   return CHAT_MODEL_OPTIONS.some((option) => option.value === candidate)
     ? candidate
     : DEFAULT_CHAT_MODEL;
+}
+
+function normalizeAgentMode(agentMode: string | null | undefined): AgentMode {
+  const candidate = (agentMode ?? "").trim();
+  return AGENT_MODE_OPTIONS.some((option) => option.value === candidate)
+    ? (candidate as AgentMode)
+    : DEFAULT_AGENT_MODE;
 }
 
 function eventDataText(event: AgentProgressEvent | undefined, key: string) {
@@ -83,6 +96,10 @@ function AgentProgressCard({ events }: { events: AgentProgressEvent[] }) {
   const latestHandoffDescription = eventDataText(latestEvent, "handoffDescription");
   const latestToolName = eventDataText(latestEvent, "toolName");
   const latestModel = [...events].reverse().map((event) => eventDataText(event, "model")).find(Boolean);
+  const latestAgentMode = [...events]
+    .reverse()
+    .map((event) => eventDataText(event, "agentModeLabel"))
+    .find(Boolean);
 
   const getEventIcon = (event?: AgentProgressEvent) => {
     if (!event) return <Bot className="h-4 w-4" />;
@@ -122,6 +139,11 @@ function AgentProgressCard({ events }: { events: AgentProgressEvent[] }) {
                 {latestModel ? (
                   <span className="rounded-full bg-white/58 px-2 py-0.5 text-[10px] font-medium text-[#66766f]">
                     {latestModel}
+                  </span>
+                ) : null}
+                {latestAgentMode ? (
+                  <span className="rounded-full bg-[#efe3bd]/70 px-2 py-0.5 text-[10px] font-semibold text-[#7a5a18]">
+                    {latestAgentMode}
                   </span>
                 ) : null}
               </div>
@@ -213,6 +235,13 @@ export function ChatPanel({ project }: { project: PaperProject }) {
       return DEFAULT_CHAT_MODEL;
     }
   });
+  const [selectedAgentMode, setSelectedAgentMode] = useState<AgentMode>(() => {
+    try {
+      return normalizeAgentMode(window.localStorage.getItem("paper-agent-mode"));
+    } catch {
+      return DEFAULT_AGENT_MODE;
+    }
+  });
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const activeThread = useMemo<ChatThread | undefined>(
@@ -238,6 +267,14 @@ export function ChatPanel({ project }: { project: PaperProject }) {
     }
   }, [selectedModel]);
 
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("paper-agent-mode", normalizeAgentMode(selectedAgentMode));
+    } catch {
+      // Ignore storage failures; the current selection still works for this render.
+    }
+  }, [selectedAgentMode]);
+
   const handleSend = async (content: string) => {
     const thread = activeThread;
     if (!thread) return;
@@ -262,6 +299,7 @@ export function ChatPanel({ project }: { project: PaperProject }) {
         latestThread ?? thread,
         content,
         normalizeChatModel(selectedModel),
+        normalizeAgentMode(selectedAgentMode),
         {
           onProgress: (event) => {
             runProgressEvents = [...runProgressEvents, event];
@@ -345,7 +383,9 @@ export function ChatPanel({ project }: { project: PaperProject }) {
       <ChatComposer
         disabled={loading || !activeThread}
         model={selectedModel}
+        agentMode={selectedAgentMode}
         onModelChange={setSelectedModel}
+        onAgentModeChange={setSelectedAgentMode}
         onSend={handleSend}
       />
       <AgentContextDrawer open={drawerOpen} context={context} onClose={() => setDrawerOpen(false)} />
