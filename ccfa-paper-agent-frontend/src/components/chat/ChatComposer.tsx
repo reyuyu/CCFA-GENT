@@ -144,7 +144,7 @@ export function ChatComposer({
         <div className="flex flex-col gap-3 px-1 pb-1 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex min-w-0 flex-1 flex-col gap-2 lg:flex-row lg:items-end">
             <div
-              className="relative w-full sm:max-w-[360px]"
+              className="relative w-full sm:max-w-[268px]"
               onBlur={(event) => {
                 const nextFocus = event.relatedTarget;
                 if (nextFocus instanceof Node && event.currentTarget.contains(nextFocus)) return;
@@ -158,7 +158,7 @@ export function ChatComposer({
               <button
                 type="button"
                 className={clsx(
-                  "group relative flex h-14 w-full items-center gap-3 overflow-hidden rounded-lg bg-gradient-to-r px-3 text-left shadow-[0_12px_28px_rgba(59,52,45,0.16)] ring-1 ring-white/30 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sage-600/25 disabled:cursor-not-allowed disabled:opacity-60",
+                  "group relative flex h-10 w-full items-center gap-2 overflow-hidden rounded-md border border-[#c4b8aa] bg-gradient-to-r px-2.5 text-left shadow-inner shadow-[#7c756e]/5 ring-1 ring-white/55 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#9a8f82] hover:shadow-md hover:shadow-[#7c756e]/10 focus:outline-none focus:ring-2 focus:ring-sage-600/25 disabled:cursor-not-allowed disabled:opacity-60",
                   selectedAgent.triggerClass
                 )}
                 disabled={disabled}
@@ -169,16 +169,16 @@ export function ChatComposer({
                 <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,transparent,rgba(255,255,255,0.28),transparent)] opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
                 <span
                   className={clsx(
-                    "relative flex h-9 w-9 shrink-0 items-center justify-center rounded-md ring-1",
+                    "relative flex h-7 w-7 shrink-0 items-center justify-center rounded ring-1",
                     selectedAgent.iconClass
                   )}
                 >
-                  <SelectedAgentIcon className="h-[18px] w-[18px]" />
+                  <SelectedAgentIcon className="h-4 w-4" />
                 </span>
                 <span className="relative min-w-0 flex-1">
-                  <span className="block truncate text-sm font-bold leading-5">{selectedAgent.label}</span>
-                  <span className="block truncate text-xs leading-4 text-[#667368]">
-                    {selectedAgent.hint} · {selectedAgent.description}
+                  <span className="block truncate text-xs font-bold leading-4">{selectedAgent.label}</span>
+                  <span className="block truncate text-[10px] leading-3 text-[#667368]">
+                    {selectedAgent.hint}
                   </span>
                 </span>
                 <ChevronDown
@@ -246,37 +246,42 @@ export function ChatComposer({
               ) : null}
             </div>
 
-            <div className="flex w-full min-w-0 items-center gap-2 rounded-md border border-[#c4b8aa] bg-white/58 p-1 text-xs text-morandi-muted shadow-inner shadow-[#7c756e]/5 sm:w-auto">
-              <Cpu className="h-3.5 w-3.5 shrink-0 text-sage-700" />
-              <div className="grid min-w-[210px] flex-1 grid-cols-2 gap-1">
-                {CHAT_MODEL_OPTIONS.map((option) => {
-                  const active = model === option.value;
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      className={clsx(
-                        "h-8 rounded px-2 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sage-600/20 disabled:cursor-not-allowed",
-                        active
-                          ? "bg-[#253029] text-white shadow-sm"
-                          : "text-morandi-muted hover:bg-white/70 hover:text-morandi-ink"
-                      )}
-                      disabled={disabled}
-                      onClick={() => onModelChange(option.value)}
-                      aria-pressed={active}
-                    >
-                      <span className="block truncate text-xs font-semibold leading-4">{option.label}</span>
-                      <span
+            <div className="w-full sm:max-w-[268px]">
+              <span className="mb-1 flex items-center gap-1.5 text-[11px] font-semibold text-morandi-muted">
+                <Cpu className="h-3.5 w-3.5 text-sage-700" />
+                选择模型
+              </span>
+              <div className="flex h-10 w-full min-w-0 items-center rounded-md border border-[#c4b8aa] bg-gradient-to-r from-[#eef4ef]/70 via-white/68 to-[#f5f0e8]/72 p-1 text-xs text-morandi-muted shadow-inner shadow-[#7c756e]/5 ring-1 ring-white/55 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#9a8f82] hover:shadow-md hover:shadow-[#7c756e]/10">
+                <div className="grid min-w-0 flex-1 grid-cols-2 gap-1">
+                  {CHAT_MODEL_OPTIONS.map((option) => {
+                    const active = model === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
                         className={clsx(
-                          "block truncate text-[10px] leading-3",
-                          active ? "text-[#dce8da]" : "text-[#8f8274]"
+                          "h-8 rounded px-2 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sage-600/20 disabled:cursor-not-allowed",
+                          active
+                            ? "bg-[#26332e] text-white shadow-sm ring-1 ring-[#26332e]/10"
+                            : "text-morandi-muted hover:bg-white/78 hover:text-morandi-ink"
                         )}
+                        disabled={disabled}
+                        onClick={() => onModelChange(option.value)}
+                        aria-pressed={active}
                       >
-                        {option.hint}
-                      </span>
-                    </button>
-                  );
-                })}
+                        <span className="block truncate text-xs font-semibold leading-4">{option.label}</span>
+                        <span
+                          className={clsx(
+                            "block truncate text-[10px] leading-3",
+                            active ? "text-[#dce8da]" : "text-[#8f8274]"
+                          )}
+                        >
+                          {option.hint}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
             <p className="shrink-0 pb-1 text-xs text-morandi-muted">
